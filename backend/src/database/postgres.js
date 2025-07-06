@@ -1,15 +1,21 @@
 const { Sequelize } = require('sequelize');
+const { CONFIG } = require('../utils/config');
+const { logger } = require('../utils/logger/logger');
 
 const sequelize = new Sequelize(
-  process.env.POSTGRES_DB || 'book_management',
-  process.env.POSTGRES_USER || 'postgres',
-  process.env.POSTGRES_PASSWORD || 'password',
+  CONFIG.DATABASE.POSTGRES_DB,
+  CONFIG.DATABASE.POSTGRES_USER,
+  CONFIG.DATABASE.POSTGRES_PASSWORD,
   {
-    host: process.env.POSTGRES_HOST || 'localhost',
-    port: process.env.POSTGRES_PORT || 5432,
+    host: CONFIG.DATABASE.POSTGRES_HOST,
+    port: CONFIG.DATABASE.POSTGRES_PORT,
     dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: CONFIG.APPLICATION.ENVIRONMENT === 'development' ? postgresLogger : false,
   }
 );
+
+function postgresLogger(sql, timing) {
+  logger.debug(`SQL: ${sql} ${timing}`);
+}
 
 module.exports = sequelize;

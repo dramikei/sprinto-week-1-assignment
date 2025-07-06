@@ -1,12 +1,16 @@
+require('dotenv').config();
+require('./utils/sentry')();
 const express = require('express');
-const { ApolloServer } = require('apollo-server-express');
 const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
+const { CONFIG } = require('./utils/config');
+const errorHandlerMiddleware = require('./middleware/error-handler.middleware');
+
 
 // Database connections
 const sequelize = require('./database/postgres');
 const connectMongoDB = require('./database/mongodb');
+const { logger } = require('./utils/logger/logger');
+const { Boom } = require('@hapi/boom');
 
 async function startServer() {
   // Initialize databases
@@ -20,18 +24,28 @@ async function startServer() {
   
   // CORS configuration
   app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: CONFIG.CORS.ORIGIN,
     credentials: true,
   }));
+
+  // Route not found
+  app.use(() => {
+    throw new Boom('Route not Found', {
+      statusCode: 404,
+    });
+  });
+
+  // Global error handler middleware
+  app.use(errorHandlerMiddleware);
   
-  const PORT = process.env.PORT || 4000;
-  
+  const PORT = CONFIG.APPLICATION.PORT;
   app.listen(PORT, () => {
-    console.log(`Server running at Port ${PORT}`);
+    logger.info(`Server running at Port: ${PORT} 🚀`);
+    logger.info(`Environment: ${CONFIG.APPLICATION.ENVIRONMENT}`);
   });
 }
 
 startServer().catch(error => {
-  console.error('Failed to start server:', error);
+  logger.error('Failed to start server:', error);
   process.exit(1);
 });
