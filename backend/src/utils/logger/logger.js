@@ -9,6 +9,10 @@ const consoleLogFormat = winston.format.printf((info) => {
   if (silenceLogMetadata) {
     return `${timestamp ?? Date().toString()} ${level}: ${message}`;
   }
+  delete consoleJSON.environment;
+  if (Object.keys(consoleJSON).length === 0) {
+    return `${timestamp ?? Date().toString()} ${level}: ${message}`;
+  }
   return `${timestamp ?? Date().toString()} ${level}: ${message}\n${JSON.stringify(consoleJSON, null, 2)}`;
 });
 
@@ -46,7 +50,7 @@ const logger = winston.createLogger({
   defaultMeta: { environment: CONFIG.APPLICATION.ENVIRONMENT },
 });
 
-const silenceLogMetadata = true; // controls output of JSON context in terminal
+const silenceLogMetadata = CONFIG.APPLICATION.ENVIRONMENT !== 'development'; // controls output of JSON context in terminal
 
 logger.on('error', (error) => {
   console.error('Error in logger caught', error);

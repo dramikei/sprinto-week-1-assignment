@@ -7,6 +7,7 @@ const errorHandlerMiddleware = require('./middleware/error-handler.middleware');
 
 
 // Database connections
+const PGModels = require('./models/postgres');
 const sequelize = require('./database/postgres');
 const connectMongoDB = require('./database/mongodb');
 const { logger } = require('./utils/logger/logger');
@@ -17,8 +18,8 @@ async function startServer() {
   await connectMongoDB();
 
   // Sync PostgreSQL database
-  // TODO: Remove this after testing
-  // await sequelize.sync({ force: false });
+  // WARNING: Should not use in production, rather use migrations.
+  await sequelize.sync({ force: false });
   
   const app = express();
   

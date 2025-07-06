@@ -14,8 +14,8 @@ const sequelize = new Sequelize(
   }
 );
 
-function postgresLogger(sql, timing) {
-  logger.debug(`SQL: ${sql} ${timing}`);
+function postgresLogger(sql) {
+  logger.debug(`SQL: ${sql}`);
 }
 
 module.exports = sequelize;
