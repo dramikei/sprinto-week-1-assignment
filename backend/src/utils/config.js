@@ -71,6 +71,13 @@ const CONFIG = {
         DSN: getEnvValue('SENTRY_DSN'),
         IS_ENABLED: getEnvValue('ENABLE_SENTRY', false),
     },
+    S3: {
+      BUCKET: getEnvValueOrThrow('S3_BUCKET'),
+      ENDPOINT: getEnvValueOrThrow('S3_ENDPOINT'),
+      PORT: getEnvValueOrThrow('S3_PORT'),
+      ACCESS_KEY: getEnvValueOrThrow('S3_ACCESS_KEY'),
+      SECRET_KEY: getEnvValueOrThrow('S3_SECRET_KEY'),
+    }
 };
 
 

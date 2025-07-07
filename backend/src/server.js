@@ -18,6 +18,10 @@ const { Boom } = require('@hapi/boom');
 const typeDefs = require('./graphql/typeDefs');
 const resolvers = require('./graphql/resolvers');
 
+// S3-compatible client
+const { MinioClient } = require('./utils/minio');
+const z = require('zod');
+
 async function startServer() {
   // Initialize databases
   await connectMongoDB();
@@ -33,6 +37,14 @@ async function startServer() {
     origin: CONFIG.APPLICATION.ENVIRONMENT === 'development' ? '*' :CONFIG.CORS.ORIGIN,
     credentials: true,
   }));
+
+  app.get('/presignedUrl', async (req, res) => {
+    const { name, uploadType } = req.query;
+    const parsedFileName = z.string().min(1).parse(name);
+    const parsedUploadType = z.string().enum(['cover', 'photo']).parse(uploadType);
+    const url = await MinioClient.presignedPutObject(CONFIG.S3.BUCKET + '/' + 'uploads' + '/' + parsedUploadType, parsedFileName, 60 * 60); // 60 * 60 = 1 hour expiry
+    res.json({ url });
+  });
 
   // Create Apollo Server
   const server = new ApolloServer({
