@@ -175,7 +175,24 @@ const resolvers = {
       return await Book.findAll({ where: { author_id: author.id } });
     },
   },
-  Book: {},
+  Book: {
+    author: async (book) => {
+      return await Author.findByPk(book.author_id);
+    },
+    
+    reviews: async (book) => {
+      // TODO: add pagination
+      return await Review.find({ book_id: book.id });
+    },
+    
+    average_rating: async (book) => {
+      const reviews = await Review.find({ book_id: book.id });
+      if (reviews.length === 0) return null;
+      
+      const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+      return sum / reviews.length;
+    },
+  },
 };
 
 module.exports = resolvers;
