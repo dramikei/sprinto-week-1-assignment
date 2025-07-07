@@ -145,6 +145,29 @@ const resolvers = {
       const deleted = await Author.destroy({ where: { id } });
       return deleted > 0;
     },
+
+    createReview: async (_, { book_id, rating, comment }) => {
+      const review = new Review({
+        book_id: parseInt(book_id),
+        user_id: 1, // TODO: Get from auth
+        rating,
+        comment
+      });
+      return await review.save();
+    },
+    
+    updateReview: async (_, { id, rating, comment }) => {
+      const updateData = {};
+      if (rating != null) updateData.rating = rating;
+      if (comment != null) updateData.comment = comment;
+      
+      return await Review.findByIdAndUpdate(id, updateData, { new: true });
+    },
+    
+    deleteReview: async (_, { id }) => {
+      const deleted = await Review.findByIdAndDelete(id);
+      return !!deleted;
+    },
   },
   Author: {},
   Book: {},
