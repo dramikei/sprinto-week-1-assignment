@@ -116,7 +116,36 @@ const resolvers = {
       return await Review.find({ book_id: parseInt(book_id) });
     },
   },
-  Mutation: {},
+  Mutation: {
+    createBook: async (_, { input }) => {
+      const book = await Book.create(input);
+      return await Book.findByPk(book.id, { include: [Author] });
+    },
+    
+    updateBook: async (_, { id, input }) => {
+      await Book.update(input, { where: { id } });
+      return await Book.findByPk(id, { include: [Author] });
+    },
+    
+    deleteBook: async (_, { id }) => {
+      const deleted = await Book.destroy({ where: { id } });
+      return deleted > 0;
+    },
+    
+    createAuthor: async (_, { input }) => {
+      return await Author.create(input);
+    },
+    
+    updateAuthor: async (_, { id, input }) => {
+      await Author.update(input, { where: { id } });
+      return await Author.findByPk(id);
+    },
+    
+    deleteAuthor: async (_, { id }) => {
+      const deleted = await Author.destroy({ where: { id } });
+      return deleted > 0;
+    },
+  },
   Author: {},
   Book: {},
 };

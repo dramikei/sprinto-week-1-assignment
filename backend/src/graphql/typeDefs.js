@@ -73,8 +73,23 @@ const typeDefs = gql`
     cover_url: String
   }
 
+  input BookUpdateInput {
+    title: String
+    description: String
+    published_date: String
+    author_id: ID
+    cover_url: String
+  }
+
   input AuthorInput {
     name: String!
+    biography: String
+    born_date: String
+    photo_url: String
+  }
+
+  input AuthorUpdateInput {
+    name: String
     biography: String
     born_date: String
     photo_url: String
@@ -113,11 +128,11 @@ const typeDefs = gql`
 
   type Mutation {
     createBook(input: BookInput!): Book!
-    updateBook(id: ID!, input: BookInput!): Book!
+    updateBook(id: ID!, input: BookUpdateInput!): Book!
     deleteBook(id: ID!): Boolean!
     
     createAuthor(input: AuthorInput!): Author!
-    updateAuthor(id: ID!, input: AuthorInput!): Author!
+    updateAuthor(id: ID!, input: AuthorUpdateInput!): Author!
     deleteAuthor(id: ID!): Boolean!
     
     createReview(book_id: ID!, rating: Int!, comment: String): Review!
