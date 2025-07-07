@@ -3,8 +3,6 @@ const { captureException } = require('@sentry/node');
 const { logger } = require('../utils/logger/logger');
 
 const apolloErrorHandlerMiddleware = (formattedError, error) => {
-  console.log(formattedError);
-  console.log(error);
   if (formattedError.extensions.code === 'INTERNAL_SERVER_ERROR') {
     let errorDescription;
     let data;
