@@ -169,7 +169,12 @@ const resolvers = {
       return !!deleted;
     },
   },
-  Author: {},
+  Author: {
+    books: async (author) => {
+      // TODO: add pagination
+      return await Book.findAll({ where: { author_id: author.id } });
+    },
+  },
   Book: {},
 };
 
