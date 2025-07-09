@@ -24,8 +24,8 @@ export const TooltipButton = forwardRef(({
     }
     
     return variant === 'primary'
-      ? `${baseClasses} bg-blue-500 hover:bg-blue-600 text-white`
-      : `${baseClasses} bg-gray-500 hover:bg-gray-600 text-white`;
+      ? `${baseClasses} bg-blue-500 hover:bg-blue-600 text-white cursor-pointer`
+      : `${baseClasses} bg-gray-500 hover:bg-gray-600 text-white cursor-pointer`;
   };
 
   return (

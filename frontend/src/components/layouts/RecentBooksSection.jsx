@@ -48,7 +48,7 @@ export default function RecentBooksSection({ books, authors }) {
         {books.map(({ node: book }) => (
           <Link href={`/books/${book.id}`} key={book.id}>
             <div key={book.id} className="bg-white rounded-lg shadow-md p-4">
-              <div className="bg-gray-200 rounded-lg h-48 flex items-center justify-center mb-4">
+              <div className="bg-gray-200 rounded-lg h-60 w-full flex items-center justify-center mb-4 overflow-clip">
                 {book.cover_url ? (
                   <img src={book.cover_url} alt={book.title} />
                 ) : (
