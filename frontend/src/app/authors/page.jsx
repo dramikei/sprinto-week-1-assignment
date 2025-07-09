@@ -9,10 +9,10 @@ export default async function Authors() {
   
   return (
     <div>
-      <h1>Books List</h1>
+      <h1>Authors List</h1>
       <ul>
         <li>
-          <Link href="/books/1">Book 1</Link>
+          <Link href="/authors/1">Author 1</Link>
         </li>
       </ul>
     </div>

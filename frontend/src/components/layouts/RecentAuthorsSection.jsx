@@ -61,10 +61,10 @@ export default function RecentAuthorsSection({ authors }) {
       </div>
       <div className="mt-6">
         <Link
-          href="/books"
+          href="/authors"
           className="text-blue-500 hover:text-blue-600 font-medium"
         >
-          View All Books →
+          View All Authors →
         </Link>
       </div>
     </div>
