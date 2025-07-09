@@ -45,9 +45,9 @@ export default function RecentAuthorsSection({ authors }) {
         {authors.map(({ node: author }) => (
           <Link href={`/authors/${author.id}`} key={author.id}>
             <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="bg-gray-200 rounded-lg h-48 flex items-center justify-center mb-4">
-                {author.image_url ? (
-                  <img src={author.image_url} alt={author.name} />
+              <div className="bg-gray-200 rounded-lg h-48 flex items-center justify-center mb-4 overflow-clip">
+                {author.photo_url ? (
+                  <img src={author.photo_url} alt={author.name} />
                 ) : (
                   <div className="text-4xl">👤</div>
                 )}

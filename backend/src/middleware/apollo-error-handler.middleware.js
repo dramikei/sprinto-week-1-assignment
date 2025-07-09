@@ -22,7 +22,6 @@ const apolloErrorHandlerMiddleware = (formattedError, error) => {
       data = {};
     }
 
-    console.log(error);
     if (logToSentry) {
       captureException({
         error: formattedError,

@@ -12,17 +12,12 @@ export default function ReviewForm({ onSubmit, onComplete }) {
     setIsSubmitting(true);
     
     try {
-      // Here you would typically make an API call
-      console.log('Submitting review:', { rating, comment });
-      
-      // Simulate API call
       await onSubmit({comment, rating});
-      
+
       // Reset form
       setComment('');
       setRating('5');
       
-      // You might want to refresh the page or update the reviews list
       alert('Review submitted successfully!');
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -84,14 +79,4 @@ export default function ReviewForm({ onSubmit, onComplete }) {
       </button>
     </form>
   );
-}
-
-// Optional: Add metadata for better SEO (Server Component)
-export async function generateMetadata({ params }) {
-  const book = await getBook(params.id);
-  
-  return {
-    title: `${book.title} - Book Management`,
-    description: `Read details and reviews for "${book.title}" by ${book.author.name}`,
-  };
 }
