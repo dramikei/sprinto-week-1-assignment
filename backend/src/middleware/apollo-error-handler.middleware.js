@@ -38,6 +38,7 @@ const apolloErrorHandlerMiddleware = (formattedError, error) => {
 
     return formattedError;
   }
+  return formattedError;
 };
   
   module.exports = apolloErrorHandlerMiddleware;
