@@ -6,6 +6,7 @@ const typeDefs = `#graphql
     born_date: String
     photo_url: String
     books: [Book!]!
+    totalBooks: Int!
     createdAt: String!
     updatedAt: String!
   }

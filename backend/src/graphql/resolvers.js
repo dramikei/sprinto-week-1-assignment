@@ -174,6 +174,9 @@ const resolvers = {
       // TODO: add pagination
       return await Book.findAll({ where: { author_id: author.id } });
     },
+    totalBooks: async (author) => {
+      return await Book.count({ where: { author_id: author.id } });
+    }
   },
   Book: {
     author: async (book) => {
