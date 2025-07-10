@@ -1,10 +1,7 @@
-// Dummy imports
-// import { getPosts } from '@/lib/posts'
-// import { Post } from '@/ui/post'
+import { use } from 'react';
 
-export default async function Page({ params }) {
-    const { id } = params;
-    // const posts = await getPosts()
+export default function Page({ params }) {
+    const { id } = use(params);
     
     return (
       <div>
