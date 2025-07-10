@@ -1,27 +1,58 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchPresignedURL } from "@/lib/repository";
 import client from "@/lib/apollo";
-import { CREATE_AUTHOR } from "@/lib/queries";
+import { CREATE_AUTHOR, UPDATE_AUTHOR } from "@/lib/queries";
 import FormTextArea from "./components/FormTextArea";
 import FormLabel from "./components/FormLabel";
 import FormInput from "./components/FormInput";
 
-export default function CreateAuthorForm() {
+export default function AuthorForm({ author }) {
   const router = useRouter();
   const fileInputRef = useRef(null); // Add this ref
 
-  const [formData, setFormData] = useState({
-    name: "",
-    biography: "",
-    birthDate: "",
-  });
+  const [authorName, setAuthorName] = useState(author?.name || "");
+  const [authorBiography, setAuthorBiography] = useState(author?.biography || "");
+  const [authorBirthDate, setAuthorBirthDate] = useState(author?.born_date || "");
+
   const [photoFile, setPhotoFile] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState(author?.photo_url || null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthorChanged, setIsAuthorChanged] = useState(false);
+  const [canSubmit, setCanSubmit] = useState(false);
+
+  const isFormValid = authorName.trim().length > 0;
+  const isEditing = author?.id != null;
+
+  useEffect(() => {
+    setAuthorName(author?.name || "");
+    setAuthorBiography(author?.biography || "");
+    setAuthorBirthDate(author?.born_date || "");
+    setPhotoUrl(author?.photo_url || "");
+  }, [author]);
+
+  useEffect(() => {
+    if (isEditing) {
+      setIsAuthorChanged(
+        authorName !== author?.name ||
+        authorBiography !== author?.biography ||
+        authorBirthDate !== author?.born_date ||
+        photoUrl !== author?.photo_url
+      );
+    }
+  }, [authorName, authorBiography, authorBirthDate, photoUrl]);
+
+  useEffect(() => {
+    setCanSubmit(() => {
+      if(isEditing && !isAuthorChanged) {
+        return false;
+      }
+      return isFormValid && !isUploading && !isSubmitting ;
+    });
+  }, [isAuthorChanged, isFormValid, isUploading, isSubmitting]);
 
   const getPresignedUrl = async (fileName) => {
     if (fileName) {
@@ -68,14 +99,6 @@ export default function CreateAuthorForm() {
     setPhotoUrl(null);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -103,10 +126,43 @@ export default function CreateAuthorForm() {
     }
   };
 
+  const createAuthor = async () => {
+    await client.mutate({
+      mutation: CREATE_AUTHOR,
+      variables: {
+        input: {
+          name: authorName,
+          biography: authorBiography,
+          born_date: authorBirthDate,
+          photo_url: photoUrl,
+        },
+      },
+    });
+    alert("Author created successfully!");
+  }
+
+  const updateAuthor = async () => {
+    const { data: authorData } = await client.mutate({
+      mutation: UPDATE_AUTHOR,
+      variables: {
+        id: author.id,
+        input: {
+          name: authorName,
+          biography: authorBiography,
+          born_date: authorBirthDate,
+          photo_url: photoUrl,
+        },
+      },
+    });
+    alert("Author updated successfully!");
+    console.log(authorData);
+    return authorData.updateAuthor;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
+    if (!authorName.trim()) {
       alert("Name is required");
       return;
     }
@@ -114,22 +170,8 @@ export default function CreateAuthorForm() {
     setIsSubmitting(true);
 
     try {
-      console.log("Creating author with data:", formData);
-
-      // API call
-      const { data } = await client.mutate({
-        mutation: CREATE_AUTHOR,
-        variables: {
-          input: {
-            name: formData.name,
-            biography: formData.biography,
-            born_date: formData.birthDate,
-            photo_url: photoUrl,
-          },
-        },
-      });
-      alert("Author created successfully!");
-      router.push("/authors");
+      const author = isEditing ? await updateAuthor() : await createAuthor();
+      router.push(`/authors/${author.id}`);
     } catch (error) {
       console.error("Error creating author:", error);
       alert("Failed to create author. Please try again.");
@@ -141,8 +183,6 @@ export default function CreateAuthorForm() {
   const handleCancel = () => {
     router.back();
   };
-
-  const isFormValid = formData.name.trim().length > 0;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
@@ -158,8 +198,8 @@ export default function CreateAuthorForm() {
             type="text"
             id="name"
             name="name"
-            value={formData.name}
-            onChange={handleInputChange}
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
             placeholder="Enter author's full name"
             required={true}
           />
@@ -171,8 +211,8 @@ export default function CreateAuthorForm() {
           <FormTextArea
             id="biography"
             name="biography"
-            value={formData.biography}
-            onChange={handleInputChange}
+            value={authorBiography}
+            onChange={(e) => setAuthorBiography(e.target.value)}
             rows={6}
             placeholder="Enter author's biography..."
           />
@@ -185,8 +225,8 @@ export default function CreateAuthorForm() {
             type="date"
             id="birthDate"
             name="birthDate"
-            value={formData.birthDate}
-            onChange={handleInputChange}
+            value={authorBirthDate}
+            onChange={(e) => {console.log(e.target.value); setAuthorBirthDate(e.target.value)}}
             placeholder="dd/mm/yyyy"
           />
         </div>
@@ -263,9 +303,9 @@ export default function CreateAuthorForm() {
 
           <button
             type="submit"
-            disabled={!isFormValid || isUploading || isSubmitting}
+            disabled={!canSubmit}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              !isFormValid || isUploading || isSubmitting
+              !canSubmit
                 ? "bg-blue-300 text-blue-500 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
             }`}
@@ -276,7 +316,7 @@ export default function CreateAuthorForm() {
                 Creating Author...
               </div>
             ) : (
-              "Create Author"
+              isEditing ? "Update Author" : "Create Author"
             )}
           </button>
         </div>

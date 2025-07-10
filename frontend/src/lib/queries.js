@@ -113,7 +113,7 @@ export const CREATE_BOOK = gql`
 `;
 
 export const UPDATE_BOOK = gql`
-  mutation UpdateBook($id: ID!, $input: BookInput!) {
+  mutation UpdateBook($id: ID!, $input: BookUpdateInput!) {
     updateBook(id: $id, input: $input) {
       id
       title
@@ -147,7 +147,7 @@ export const CREATE_AUTHOR = gql`
 `;
 
 export const UPDATE_AUTHOR = gql`
-  mutation UpdateAuthor($id: ID!, $input: AuthorInput!) {
+  mutation UpdateAuthor($id: ID!, $input: AuthorUpdateInput!) {
     updateAuthor(id: $id, input: $input) {
       id
       name
