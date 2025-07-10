@@ -4,11 +4,13 @@ import ReviewForm from '@/components/forms/ReviewForm';
 import EditButton from '@/components/ui/EditButton';
 import DeleteButton from '@/components/ui/DeleteButton';
 import client from '@/lib/apollo';
-import { GET_BOOK, CREATE_REVIEW } from '@/lib/queries';
+import { GET_BOOK, CREATE_REVIEW, DELETE_BOOK } from '@/lib/queries';
 import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function BookDetailPage({ params }) {
   const { id } = use(params);
+  const router = useRouter();
   const [book, setBook] = useState({});
   const [reviews, setReviews] = useState([]);
 
@@ -32,6 +34,21 @@ export default function BookDetailPage({ params }) {
       }
     });
     setReviews([...reviews, data.createReview]);
+  }
+
+  const deleteBook = async () => {
+    try {
+      await client.mutate({
+        mutation: DELETE_BOOK,
+        variables: {
+          id: id
+        }
+      });
+      router.push("/books");
+    } catch (error) {
+      console.error("Error deleting book:", error);
+      alert("Failed to delete book. Please try again.");
+    }
   }
 
   useEffect(() => {
@@ -105,7 +122,11 @@ export default function BookDetailPage({ params }) {
               {/* Action Buttons */}
               <div className="flex gap-4">
                 <EditButton title="Edit Book" onClick={() => {}} />
-                <DeleteButton title="Delete Book" onClick={() => {}} /> 
+                <DeleteButton title="Delete Book" onClick={() => {
+                  if(confirm("Are you sure you want to delete this book?")) {
+                    deleteBook();
+                  }
+                }} /> 
               </div>
             </div>
           </div>

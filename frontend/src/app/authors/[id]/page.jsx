@@ -3,9 +3,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
 import client from '@/lib/apollo';
-import { GET_AUTHOR } from '@/lib/queries';
+import { DELETE_AUTHOR, GET_AUTHOR } from '@/lib/queries';
 import DeleteButton from '@/components/ui/DeleteButton';
 import EditButton from '@/components/ui/EditButton';
+import { useRouter } from 'next/navigation';
 
 // This would typically come from your database/API
 async function getAuthor(id) {
@@ -42,7 +43,7 @@ function calculateAge(birthDate) {
 }
 
 export default function AuthorDetailPage({ params }) {
-  // const author = await getAuthor(params.id);
+  const router = useRouter();
   const authorId = use(params).id;
   const [author, setAuthor] = useState(null);
 
@@ -57,6 +58,21 @@ export default function AuthorDetailPage({ params }) {
     }
     fetchAuthor();
   }, [authorId]);
+
+  const deleteAuthor = async () => {
+    try {
+      await client.mutate({
+        mutation: DELETE_AUTHOR,
+        variables: {
+          id: authorId
+        }
+      });
+      router.push("/authors");
+    } catch (error) {
+      console.error("Error deleting author:", error);
+      alert("Failed to delete author. Please try again.");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -114,8 +130,14 @@ export default function AuthorDetailPage({ params }) {
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
-                  <EditButton id={author?.id} title="Edit Author" onEdit={() => {}} />
-                  <DeleteButton id={author?.id} title="Delete Author" onDelete={() => {}} />
+                  <EditButton id={author?.id} title="Edit Author" onClick={() => {
+                    router.push(`/authors/${author?.id}/edit`);
+                  }} />
+                  <DeleteButton id={author?.id} title="Delete Author" onClick={() => {
+                    if(confirm("Are you sure you want to delete this author?")) {
+                      deleteAuthor();
+                    }
+                  }} />
                 </div>
               </div>
             </div>
