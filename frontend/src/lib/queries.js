@@ -21,7 +21,8 @@ export const GET_BOOKS = gql`
       pageInfo {
         hasNextPage
         hasPreviousPage
-        cursor
+        nextCursor
+        previousCursor
       }
       totalCount
     }
@@ -78,7 +79,8 @@ export const GET_AUTHORS = gql`
       pageInfo {
         hasNextPage
         hasPreviousPage
-        cursor
+        nextCursor
+        previousCursor
       }
       totalCount
     }

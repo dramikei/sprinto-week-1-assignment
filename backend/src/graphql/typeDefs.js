@@ -66,7 +66,8 @@ const typeDefs = `#graphql
   type PageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
-    cursor: String
+    nextCursor: String
+    previousCursor: String
   }
 
   input BookInput {
@@ -122,6 +123,7 @@ const typeDefs = `#graphql
     authors(
       first: Int
       after: String
+      before: String
       filter: AuthorFilterInput
     ): AuthorConnection!
     

@@ -9,12 +9,16 @@ const decodeCursor = (cursor) => parseInt(Buffer.from(cursor, 'base64').toString
 const PAGE_SIZE = 10;
 const resolvers = {
   Query: {
-    books: async (_, { first = 10, after, filter }) => {
+    books: async (_, { first = 10, after, before, filter }) => {
       const limit = Math.min(first, PAGE_SIZE);
       const where = {};
 
       if (after) {
         where.id = { [Op.gt]: decodeCursor(after) };
+      }
+
+      if (before) {
+        where.id = { [Op.lt]: decodeCursor(before) };
       }
 
       if (filter) {
@@ -51,7 +55,8 @@ const resolvers = {
         pageInfo: {
           hasNextPage,
           hasPreviousPage: !!after,
-          cursor: edges.length > 0 ? edges.at(-1).cursor : null,
+          nextCursor: edges.length > 0 ? edges.at(-1).cursor : null,
+          previousCursor: edges.length > 0 ? edges.at(0).cursor : null,
         },
         totalCount,
       };
@@ -61,12 +66,16 @@ const resolvers = {
       return await Book.findByPk(id, { include: [Author] });
     },
 
-    authors: async (_, { first = 10, after, filter }) => {
+    authors: async (_, { first = 10, after, before, filter }) => {
       const limit = Math.min(first, PAGE_SIZE);
       const where = {};
 
       if (after) {
         where.id = { [Op.gt]: decodeCursor(after) };
+      }
+
+      if (before) {
+        where.id = { [Op.lt]: decodeCursor(before) };
       }
 
       if (filter) {
@@ -102,7 +111,8 @@ const resolvers = {
         pageInfo: {
           hasNextPage,
           hasPreviousPage: !!after,
-          cursor: edges.length > 0 ? edges.at(-1).cursor : null,
+          nextCursor: edges.length > 0 ? edges.at(-1).cursor : null,
+          previousCursor: edges.length > 0 ? edges.at(0).cursor : null,
         },
         totalCount,
       };
