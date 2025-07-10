@@ -17,6 +17,7 @@ export default async function HomePage() {
 
   const recentBooks = booksData?.books?.edges || [];
   const recentAuthors = authorsData?.authors?.edges || [];
+  console.log(recentAuthors);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -25,7 +26,7 @@ export default async function HomePage() {
         {/* Welcome Section */}
         <WelcomeSection books={recentBooks} authors={recentAuthors} />
         {/* Recent Books Section */}
-        <RecentBooksSection books={recentBooks} />
+        <RecentBooksSection books={recentBooks} authors={recentAuthors} />
 
         {/* Recent Authors Section */}
         <RecentAuthorsSection authors={recentAuthors} />

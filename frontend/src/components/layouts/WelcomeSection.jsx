@@ -20,7 +20,7 @@ export default function WelcomeSection({ books, authors }) {
           </TooltipButton>
         )}
         {authors?.length > 0 && (
-          <TooltipButton variant="secondary" href="/books/new">
+          <TooltipButton variant="secondary" href="/authors/new">
             Add New Author
           </TooltipButton>
         )}

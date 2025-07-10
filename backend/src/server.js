@@ -5,7 +5,9 @@ const cors = require('cors');
 const { CONFIG } = require('./utils/config');
 const errorHandlerMiddleware = require('./middleware/error-handler.middleware');
 const apolloErrorHandlerMiddleware = require('./middleware/apollo-error-handler.middleware');
-const { ApolloServer } = require('apollo-server-express');
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@as-integrations/express5');
+const http = require('http');
 
 // Database connections
 const PGModels = require('./models/postgres'); // Added so that the models are loaded before the server starts
@@ -31,20 +33,17 @@ async function startServer() {
   await sequelize.sync({ force: false });
   
   const app = express();
+  const httpServer = http.createServer(app);
   
+  console.log(CONFIG.APPLICATION.ENVIRONMENT);
   // CORS configuration
-  app.use(cors({
-    origin: CONFIG.APPLICATION.ENVIRONMENT === 'development' ? '*' :CONFIG.CORS.ORIGIN,
-    credentials: true,
-  }));
+  // app.use(cors({
+  //   origin: CONFIG.APPLICATION.ENVIRONMENT === 'development' ? '*' : CONFIG.CORS.ORIGIN,
+  //   credentials: true,
+  // }));
+  
 
-  app.get('/presignedUrl', async (req, res) => {
-    const { name, uploadType } = req.query;
-    const parsedFileName = z.string().min(1).parse(name);
-    const parsedUploadType = z.string().enum(['cover', 'photo']).parse(uploadType);
-    const url = await MinioClient.presignedPutObject(CONFIG.S3.BUCKET + '/' + 'uploads' + '/' + parsedUploadType, parsedFileName, 60 * 60); // 60 * 60 = 1 hour expiry
-    res.json({ url });
-  });
+  app.use(express.json());
 
   // Create Apollo Server
   const server = new ApolloServer({
@@ -58,7 +57,18 @@ async function startServer() {
   });
   
   await server.start();
-  server.applyMiddleware({ app, path: '/graphql' });
+  app.use(cors());
+  app.use('/graphql', expressMiddleware(server));
+
+  app.get('/presignedUrl', async (req, res) => {
+    const { name, uploadType } = req.query;
+    const parsedFileName = z.string().min(1).parse(name);
+    const parsedUploadType = z.string().parse(uploadType);
+    const objectName = 'uploads/' + parsedUploadType + '/' + parsedFileName;
+    const fileUrl = 'https://' + CONFIG.S3.ENDPOINT + '/' + CONFIG.S3.BUCKET + '/' + objectName;
+    const uploadUrl = (await MinioClient.presignedPutObject(CONFIG.S3.BUCKET, objectName, 60 * 60)); // 60 * 60 = 1 hour expiry
+    res.json({ uploadUrl, fileUrl });
+  });
 
   // Route not found
   app.use(() => {
@@ -71,7 +81,8 @@ async function startServer() {
   app.use(errorHandlerMiddleware);
   
   const PORT = CONFIG.APPLICATION.PORT;
-  app.listen(PORT, () => {
+
+  httpServer.listen(PORT, () => {
     logger.info(`Server running at Port: ${PORT} 🚀`);
     logger.info(`Environment: ${CONFIG.APPLICATION.ENVIRONMENT}`);
     logger.info(`GraphQL Playground: http://localhost:${PORT}/graphql`);

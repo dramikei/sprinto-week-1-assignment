@@ -2,11 +2,9 @@ import Link from "next/link";
 import EmptyState from "../ui/EmptyState";
 import { TooltipButton } from "../ui/TooltipButton";
 
-export default function RecentAuthorsSection({ authors }) {
-  // Empty state
-  if (authors.length === 0) {
-    return (
-      <div>
+function EmptyAuthorState() {
+  return (
+    <div>
         <h3 className="text-2xl font-bold text-slate-700 mb-6">
           Recent Authors
         </h3>
@@ -35,9 +33,10 @@ export default function RecentAuthorsSection({ authors }) {
             </TooltipButton>
           </EmptyState>
       </div>
-    );
-  }
+  )
+}
 
+function RecentAuthors({ authors }) {
   return (
     <div>
       <h3 className="text-2xl font-bold text-slate-700 mb-6">Recent Authors</h3>
@@ -68,5 +67,13 @@ export default function RecentAuthorsSection({ authors }) {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function RecentAuthorsSection({ authors }) {
+  return (
+    <>
+      {authors.length === 0 ? <EmptyAuthorState /> : <RecentAuthors authors={authors} />}
+    </>
   );
 }
