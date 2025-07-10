@@ -1,6 +1,7 @@
 import Link from "next/link";
 import EmptyState from "../ui/EmptyState";
 import { TooltipButton } from "../ui/TooltipButton";
+import BookCards from "./components/BookCards";
 
 function EmptyBooksState({ authors }) {
   return (
@@ -43,25 +44,7 @@ function RecentBooks({ books }) {
   return (
     <div className="mb-12">
       <h3 className="text-2xl font-bold text-slate-700 mb-6">Recent Books</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {books.map(({ node: book }) => (
-          <Link href={`/books/${book.id}`} key={book.id}>
-            <div key={book.id} className="bg-white rounded-lg shadow-md p-4">
-              <div className="bg-gray-200 rounded-lg h-60 w-full flex items-center justify-center mb-4 overflow-clip">
-                {book.cover_url ? (
-                  <img src={book.cover_url} alt={book.title} />
-                ) : (
-                  <span className="text-gray-500">No Cover</span>
-                )}
-              </div>
-              <h4 className="font-semibold text-lg text-slate-700 mb-1">
-                {book.title}
-              </h4>
-              <p className="text-gray-600 text-sm">by {book.author.name}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <BookCards books={books} />
       <div className="mt-6">
         <Link
           href="/books"

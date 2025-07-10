@@ -6,7 +6,7 @@ export default function FormTextArea({ id, name, value, onChange, rows = 6, plac
         <textarea
             id={id}
             name={name}
-            value={value}
+            value={value ?? ""}
             onChange={onChange}
             rows={rows}
             placeholder={placeholder}
