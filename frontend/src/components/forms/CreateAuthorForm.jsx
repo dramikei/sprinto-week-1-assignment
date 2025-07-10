@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { fetchPresignedURL } from "@/lib/repository";
 import client from "@/lib/apollo";
@@ -11,21 +11,25 @@ import FormInput from "./components/FormInput";
 
 export default function CreateAuthorForm() {
   const router = useRouter();
+  const fileInputRef = useRef(null); // Add this ref
+
   const [formData, setFormData] = useState({
     name: "",
     biography: "",
     birthDate: "",
-    photo: null,
   });
   const [photoFile, setPhotoFile] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoUrl, setPhotoUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getPresignedUrl = async (fileName) => {
     if (fileName) {
       try {
-        const { uploadUrl, fileUrl } = await fetchPresignedURL(fileName, "photo");
+        const { uploadUrl, fileUrl } = await fetchPresignedURL(
+          fileName,
+          "photo"
+        );
         return { uploadUrl, fileUrl };
       } catch (error) {
         console.error("Error fetching presigned URL:", error);
@@ -42,13 +46,26 @@ export default function CreateAuthorForm() {
         body: file,
       });
       if (!response.ok) {
-        throw new Error("Failed to upload image. Please try again.", response.body);
+        throw new Error(
+          "Failed to upload image. Please try again.",
+          response.body
+        );
       }
       return response;
     } catch (error) {
       console.error("Error uploading to S3:", error);
       throw new Error("Failed to upload image. Please try again.");
     }
+  };
+
+  const resetFileInput = () => {
+    // Clear the file input value
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    // Reset the state
+    setPhotoFile(null);
+    setPhotoUrl(null);
   };
 
   const handleInputChange = (e) => {
@@ -75,20 +92,12 @@ export default function CreateAuthorForm() {
 
       // Step 3: Save the file URL
       setPhotoUrl(fileUrl);
-      setFormData((prev) => ({
-        ...prev,
-        photo: fileUrl,
-      }));
 
       console.log("Upload successful!", fileUrl);
     } catch (error) {
       console.error("Upload failed:", error);
+      resetFileInput();
       alert("Failed to upload image. Please try again.");
-      setPhotoFile(null);
-      setFormData((prev) => ({
-        ...prev,
-        photo: null,
-      }));
     } finally {
       setIsUploading(false);
     }
@@ -115,11 +124,10 @@ export default function CreateAuthorForm() {
             name: formData.name,
             biography: formData.biography,
             born_date: formData.birthDate,
-            photo_url: formData.photo,
+            photo_url: photoUrl,
           },
         },
       });
-      console.log(data);
       alert("Author created successfully!");
       router.push("/authors");
     } catch (error) {
@@ -160,7 +168,14 @@ export default function CreateAuthorForm() {
         {/* Biography Field */}
         <div>
           <FormLabel label="Biography" name="biography" />
-          <FormTextArea id="biography" name="biography" value={formData.biography} onChange={handleInputChange} rows={6} placeholder="Enter author's biography..." />
+          <FormTextArea
+            id="biography"
+            name="biography"
+            value={formData.biography}
+            onChange={handleInputChange}
+            rows={6}
+            placeholder="Enter author's biography..."
+          />
         </div>
 
         {/* Birth Date Field */}
@@ -181,6 +196,7 @@ export default function CreateAuthorForm() {
           <FormLabel label="Author Photo" name="photo" />
           <div className="space-y-3">
             <FormInput
+              ref={fileInputRef}
               type="file"
               id="photo"
               name="photo"
@@ -217,10 +233,19 @@ export default function CreateAuthorForm() {
             )}
 
             {photoFile && !isUploading && (
-              <div className="text-sm text-gray-600">
-                Selected: {photoFile.name} (
-                {(photoFile.size / 1024 / 1024).toFixed(2)} MB)
-              </div>
+              <>
+                <div className="text-sm text-gray-600">
+                  Selected: {photoFile.name} (
+                  {(photoFile.size / 1024 / 1024).toFixed(2)} MB)
+                </div>
+                <button
+                  type="button"
+                  onClick={resetFileInput}
+                  className="text-sm text-red-600 hover:text-red-800 underline"
+                >
+                  Remove selected file
+                </button>
+              </>
             )}
           </div>
         </div>

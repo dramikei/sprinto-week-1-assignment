@@ -90,8 +90,8 @@ export const GET_AUTHOR = gql`
         description
         published_date
         cover_url
-        average_rating
       }
+      totalBooks
     }
   }
 `;

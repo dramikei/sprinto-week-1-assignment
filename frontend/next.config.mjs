@@ -1,4 +1,13 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+    images: {
+        remotePatterns: [{
+          protocol: 'http',
+          hostname: 's3.dramikei.com',
+          port: '',
+          pathname: '/sprinto-week-1-assignment/uploads/**'
+        }]
+      }
+};
 
 export default nextConfig;
