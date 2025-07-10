@@ -11,6 +11,11 @@ const typeDefs = `#graphql
     updatedAt: String!
   }
 
+  type AuthorNameId {
+    id: ID!
+    name: String!
+  }
+
   type Book {
     id: ID!
     title: String!
@@ -121,6 +126,8 @@ const typeDefs = `#graphql
     ): AuthorConnection!
     
     author(id: ID!): Author
+    
+    authorNameId: [AuthorNameId!]!
     
     reviews(book_id: ID!): [Review!]!
   }

@@ -53,6 +53,15 @@ export const GET_BOOK = gql`
   }
 `;
 
+export const GET_AUTHOR_NAME_ID = gql`
+  query GetAuthorNameId {
+    authorNameId {
+      id
+      name
+    }
+  }
+`;
+
 export const GET_AUTHORS = gql`
   query GetAuthors($first: Int, $after: String, $filter: AuthorFilterInput) {
     authors(first: $first, after: $after, filter: $filter) {

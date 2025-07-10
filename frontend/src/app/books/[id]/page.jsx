@@ -121,7 +121,9 @@ export default function BookDetailPage({ params }) {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <EditButton title="Edit Book" onClick={() => {}} />
+                <EditButton title="Edit Book" onClick={() => {
+                  router.push(`/books/${id}/edit`);
+                }} />
                 <DeleteButton title="Delete Book" onClick={() => {
                   if(confirm("Are you sure you want to delete this book?")) {
                     deleteBook();

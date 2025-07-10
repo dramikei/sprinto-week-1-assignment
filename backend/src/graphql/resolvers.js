@@ -115,6 +115,12 @@ const resolvers = {
     reviews: async (_, { book_id }) => {
       return await Review.find({ book_id: parseInt(book_id) });
     },
+
+    authorNameId: async () => {
+      return await Author.findAll({
+        attributes: ['id', 'name'],
+      });
+    },
   },
   Mutation: {
     createBook: async (_, { input }) => {

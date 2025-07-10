@@ -17,7 +17,6 @@ export default async function HomePage() {
 
   const recentBooks = booksData?.books?.edges || [];
   const recentAuthors = authorsData?.authors?.edges || [];
-  console.log(recentAuthors);
 
   return (
     <div className="min-h-screen bg-gray-100">
