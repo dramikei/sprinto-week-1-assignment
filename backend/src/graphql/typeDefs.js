@@ -20,7 +20,7 @@ const typeDefs = `#graphql
     id: ID!
     title: String!
     description: String
-    published_date: String
+    published_date: String!
     author_id: ID!
     cover_url: String
     author: Author!
@@ -33,7 +33,6 @@ const typeDefs = `#graphql
   type Review {
     id: ID!
     book_id: ID!
-    user_id: ID!
     rating: Int!
     comment: String
     helpful_count: Int!
@@ -73,7 +72,7 @@ const typeDefs = `#graphql
   input BookInput {
     title: String!
     description: String
-    published_date: String
+    published_date: String!
     author_id: ID!
     cover_url: String
   }

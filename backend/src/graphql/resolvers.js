@@ -9,7 +9,7 @@ const decodeCursor = (cursor) => parseInt(Buffer.from(cursor, 'base64').toString
 const PAGE_SIZE = 10;
 const resolvers = {
   Query: {
-    books: async (_, { first = 10, after, before, filter }) => {
+    books: async (_, { first = 10, after, before, filter, ...rest }) => {
       const limit = Math.min(first, PAGE_SIZE);
       const where = {};
 

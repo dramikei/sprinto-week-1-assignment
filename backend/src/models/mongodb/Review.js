@@ -6,10 +6,6 @@ const reviewSchema = new mongoose.Schema({
     required: true,
     ref: 'Book',
   },
-  user_id: {
-    type: Number,
-    required: true,
-  },
   rating: {
     type: Number,
     required: true,
@@ -28,6 +24,6 @@ const reviewSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-reviewSchema.index({ book_id: 1, user_id: 1 }, { unique: true });
+reviewSchema.index({ book_id: 1 });
 
 module.exports = mongoose.model('Review', reviewSchema);

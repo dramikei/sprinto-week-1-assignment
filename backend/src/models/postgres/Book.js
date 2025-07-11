@@ -8,11 +8,10 @@ const Book = sequelize.define('Book', {
     autoIncrement: true,
   },
   title: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
     validate: {
       notEmpty: true,
-      len: [1, 255],
     },
   },
   description: {
@@ -20,8 +19,8 @@ const Book = sequelize.define('Book', {
     allowNull: true,
   },
   published_date: {
-    type: DataTypes.DATE,
-    allowNull: true,
+    type: DataTypes.DATEONLY,
+    allowNull: false,
   },
   author_id: {
     type: DataTypes.INTEGER,
@@ -32,7 +31,7 @@ const Book = sequelize.define('Book', {
     },
   },
   cover_url: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true,
   },
 }, {

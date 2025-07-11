@@ -37,10 +37,10 @@ async function startServer() {
   
   console.log(CONFIG.APPLICATION.ENVIRONMENT);
   // CORS configuration
-  // app.use(cors({
-  //   origin: CONFIG.APPLICATION.ENVIRONMENT === 'development' ? '*' : CONFIG.CORS.ORIGIN,
-  //   credentials: true,
-  // }));
+  app.use(cors({
+    origin: CONFIG.APPLICATION.ENVIRONMENT === 'development' ? '*' : CONFIG.CORS.ORIGIN,
+    credentials: true,
+  }));
   
 
   app.use(express.json());
@@ -57,7 +57,6 @@ async function startServer() {
   });
   
   await server.start();
-  app.use(cors());
   app.use('/graphql', expressMiddleware(server));
 
   app.get('/presignedUrl', async (req, res) => {
