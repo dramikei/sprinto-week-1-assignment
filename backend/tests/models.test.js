@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { Sequelize } = require('sequelize');
 const Author = require('../src/models/postgres/Author');
 const Book = require('../src/models/postgres/Book');
