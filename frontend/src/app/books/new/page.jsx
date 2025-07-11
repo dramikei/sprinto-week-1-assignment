@@ -1,16 +1,21 @@
+"use client";
 import BookForm from '@/components/forms/BookForm';
-import { GET_AUTHOR_NAME_ID, GET_AUTHORS } from '@/lib/queries';
+import { GET_AUTHOR_NAME_ID } from '@/lib/queries';
 import client from '@/lib/apollo';
+import { useEffect, useState } from 'react';
 
-async function getAuthors() {
-  const { data: authorsData } = await client.query({
-    query: GET_AUTHOR_NAME_ID,
-  });
-  return authorsData.authorNameId;
-}
+export default function CreateBookPage() {
+  const [authors, setAuthors] = useState([]);
 
-export default async function CreateBookPage() {
-  const authors = await getAuthors();
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      const { data: authorsData } = await client.query({
+      query: GET_AUTHOR_NAME_ID,
+    });
+    setAuthors(authorsData.authorNameId);
+  };
+  fetchAuthors();
+}, []);
 
   return (
     <div className="min-h-screen bg-gray-100">

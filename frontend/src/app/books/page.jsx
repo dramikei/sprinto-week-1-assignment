@@ -1,17 +1,23 @@
+"use client";
 import BooksSearchAndList from '@/components/layouts/BooksSearchAndListSection';
 import client from '@/lib/apollo';
 import { GET_BOOKS } from '@/lib/queries';
+import { useEffect, useState } from 'react';
 
-const getInitialBooks = async () => {
-  const { data: booksData } = await client.query({
-    query: GET_BOOKS,
-    variables: { first: 6 },
-  });
-  return booksData?.books?.edges ?? [];
-};
 
-export default async function BooksPage({ searchParams }) {
-  const books = await getInitialBooks(searchParams);
+export default function BooksPage() {
+  const [books, setBooks] = useState([]);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const { data: booksData } = await client.query({
+        query: GET_BOOKS,
+        variables: { first: 6 },
+      });
+      setBooks(booksData?.books?.edges || []);
+    };
+    fetchBooks();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">

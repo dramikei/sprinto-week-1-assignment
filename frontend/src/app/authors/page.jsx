@@ -1,17 +1,23 @@
+"use client";
 import AuthorsSearchAndList from '@/components/layouts/AuthorsSearchAndListSection';
 import client from '@/lib/apollo';
 import { GET_AUTHORS } from '@/lib/queries';
+import { useEffect, useState } from 'react';
 
-const getInitialAuthors = async () => {
-  const { data: authorsData } = await client.query({
-    query: GET_AUTHORS,
-    variables: { first: 6 },
-  });
-  return authorsData?.authors?.edges ?? [];
-};
 
-export default async function AuthorsPage({ searchParams }) {
-  const authors = await getInitialAuthors(searchParams);
+export default function AuthorsPage() {
+  const [authors, setAuthors] = useState([]);
+  
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      const { data: authorsData } = await client.query({
+        query: GET_AUTHORS,
+        variables: { first: 6 },
+      });
+      setAuthors(authorsData?.authors?.edges ?? []);
+    };
+    fetchAuthors();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
