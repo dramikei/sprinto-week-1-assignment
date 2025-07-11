@@ -64,7 +64,7 @@ async function startServer() {
     const parsedFileName = z.string().min(1).parse(name);
     const parsedUploadType = z.string().parse(uploadType);
     const objectName = 'uploads/' + parsedUploadType + '/' + parsedFileName;
-    const fileUrl = 'http://' + CONFIG.S3.ENDPOINT + '/' + CONFIG.S3.BUCKET + '/' + objectName;
+    const fileUrl = 'https://' + CONFIG.S3.ENDPOINT + '/' + CONFIG.S3.BUCKET + '/' + objectName;
     const uploadUrl = (await MinioClient.presignedPutObject(CONFIG.S3.BUCKET, objectName, 60 * 60)); // 60 * 60 = 1 hour expiry
     res.json({ uploadUrl, fileUrl });
   });
