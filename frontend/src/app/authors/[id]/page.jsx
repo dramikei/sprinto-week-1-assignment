@@ -161,7 +161,7 @@ export default function AuthorDetailPage({ params }) {
               </h2>
               {author?.totalBooks > 3 && (
                 <Link
-                  href={`/authors/${author?.id}/books`}
+                  href={`/books`}
                   className="text-blue-500 hover:text-blue-600 font-medium"
                 >
                   View All ({author?.totalBooks})
