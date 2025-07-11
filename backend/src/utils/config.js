@@ -1,4 +1,4 @@
-const Boom = require('@hapi/boom');
+const { Boom } = require('@hapi/boom');
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
