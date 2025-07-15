@@ -8,6 +8,11 @@ The application is live at: **https://demo.dramikei.com/**
 
 *Note: The demo is self-hosted on my homelab currently with reverse proxy and SSL certificates automatically managed. But it can easily be hosted on any major service like AWS*
 
+## Explanation:
+- **Backend**: [Loom](https://www.loom.com/share/c685cf67df354260af31715be81aca92?sid=556a46fa-54f6-4337-a50a-5b4fd1d07842)
+- **Frontend**: (WIP)
+- **Infra**: (WIP)
+
 ## 📋 Features
 
 ### Core Functionality
