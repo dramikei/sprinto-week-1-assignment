@@ -10,7 +10,7 @@ The application is live at: **https://demo.dramikei.com/**
 
 ## Explanation:
 - **Backend**: [Loom](https://www.loom.com/share/c685cf67df354260af31715be81aca92?sid=556a46fa-54f6-4337-a50a-5b4fd1d07842)
-- **Frontend**: (WIP)
+- **Frontend**: [Loom](https://www.loom.com/share/db8e71538fdc4fd7b312fc64d386fd9d?sid=78258ff1-3cbf-4bd3-974b-f15bd2b9d896)
 - **Infra**: [Loom](https://www.loom.com/share/8c7230f0b6f949698e7200d9334fcab3?sid=bcfa7aaa-1553-4a49-9d9a-2e9a9ec25096)
 ## 📋 Features
 
