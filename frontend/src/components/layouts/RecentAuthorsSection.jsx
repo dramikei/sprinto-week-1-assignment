@@ -2,8 +2,13 @@ import Link from "next/link";
 import EmptyState from "../ui/EmptyState";
 import { TooltipButton } from "../ui/TooltipButton";
 import AuthorCards from "./components/AuthorCards";
+import { useState } from "react";
+import Modal from "../modal/Model";
+import AuthorForm from "../forms/AuthorForm";
 
 function EmptyAuthorState() {
+  const [isAddAuthorModalOpen, setIsAddAuthorModalOpen] = useState(false);
+
   return (
     <div>
         <h3 className="text-2xl font-bold text-slate-700 mb-6">
@@ -29,10 +34,16 @@ function EmptyAuthorState() {
               </svg>
             }
           >
-            <TooltipButton href="/authors/new" variant="secondary">
+            <TooltipButton variant="secondary" onClick={() => setIsAddAuthorModalOpen(true)}>
               Add Your First Author
             </TooltipButton>
           </EmptyState>
+
+          {isAddAuthorModalOpen && (
+            <Modal isOpen={isAddAuthorModalOpen} handleClose={() => setIsAddAuthorModalOpen(false)}>
+              <AuthorForm isOpen={isAddAuthorModalOpen} handleClose={() => setIsAddAuthorModalOpen(false)} />
+            </Modal>
+          )}
       </div>
   )
 }

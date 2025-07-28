@@ -7,12 +7,15 @@ import client from '@/lib/apollo';
 import { GET_BOOK, CREATE_REVIEW, DELETE_BOOK } from '@/lib/queries';
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import BookForm from '@/components/forms/BookForm';
+import Modal from '@/components/modal/Model';
 
 export default function BookDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const [book, setBook] = useState({});
   const [reviews, setReviews] = useState([]);
+  const [isEditBookModalOpen, setIsEditBookModalOpen] = useState(false);
 
   async function getBook(id) {
     const { data: bookData } = await client.query({
@@ -70,7 +73,6 @@ export default function BookDetailPage({ params }) {
 
   return (
     <div className="min-h-screen bg-gray-100">
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-md p-8">
@@ -93,18 +95,18 @@ export default function BookDetailPage({ params }) {
               <h1 className="text-3xl font-bold text-slate-700 mb-4">
                 {book?.title}
               </h1>
-              
+
               {/* Author */}
               <div className="mb-4">
                 <span className="text-gray-600">by </span>
-                <Link 
+                <Link
                   href={`/authors/${book?.author?.id}`}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
                   {book?.author?.name}
                 </Link>
               </div>
-              
+
               {/* Publish Date */}
               <div className="mb-3">
                 <span className="text-gray-600">Published: </span>
@@ -115,20 +117,29 @@ export default function BookDetailPage({ params }) {
               {book?.average_rating && (
                 <div className="mb-6 flex items-center gap-2">
                   <span className="text-gray-600">Average Rating: </span>
-                  <span className="text-gray-800 text-xl mt-0.5">{book?.average_rating + " 🌟"}</span>
+                  <span className="text-gray-800 text-xl mt-0.5">
+                    {book?.average_rating + " 🌟"}
+                  </span>
                 </div>
               )}
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <EditButton title="Edit Book" onClick={() => {
-                  router.push(`/books/${id}/edit`);
-                }} />
-                <DeleteButton title="Delete Book" onClick={() => {
-                  if(confirm("Are you sure you want to delete this book?")) {
-                    deleteBook();
-                  }
-                }} /> 
+                <EditButton
+                  title="Edit Book"
+                  onClick={() => {
+                    setIsEditBookModalOpen(true);
+                    //router.push(`/books/${id}/edit`);
+                  }}
+                />
+                <DeleteButton
+                  title="Delete Book"
+                  onClick={() => {
+                    if (confirm("Are you sure you want to delete this book?")) {
+                      deleteBook();
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -148,22 +159,26 @@ export default function BookDetailPage({ params }) {
             <h2 className="text-2xl font-bold text-slate-700 mb-6 border-b-2 border-blue-500 pb-2">
               Reviews
             </h2>
-            
+
             {/* Write a Review */}
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
               <h3 className="text-xl font-semibold text-slate-700 mb-4">
                 Write a Review
               </h3>
-              <ReviewForm bookId={book?.id} onSubmit={submitReview} onComplete={() => {
-
-              }} />
+              <ReviewForm
+                bookId={book?.id}
+                onSubmit={submitReview}
+                onComplete={() => {}}
+              />
             </div>
 
             {/* Existing Reviews */}
             {reviews.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500 text-lg">No reviews yet</p>
-                <p className="text-gray-400">Be the first to review this book!</p>
+                <p className="text-gray-400">
+                  Be the first to review this book!
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -173,7 +188,14 @@ export default function BookDetailPage({ params }) {
                       <span className="font-medium">{review?.author}</span>
                       <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                          <span key={i} className={i < review?.rating ? 'text-yellow-400' : 'text-gray-300'}>
+                          <span
+                            key={i}
+                            className={
+                              i < review?.rating
+                                ? "text-yellow-400"
+                                : "text-gray-300"
+                            }
+                          >
                             ★
                           </span>
                         ))}
@@ -187,6 +209,19 @@ export default function BookDetailPage({ params }) {
           </section>
         </div>
       </main>
+
+      {isEditBookModalOpen && (
+        <Modal
+          isOpen={isEditBookModalOpen}
+          handleClose={() => setIsEditBookModalOpen(false)}
+        >
+          <BookForm
+            isOpen={isEditBookModalOpen}
+            handleClose={() => setIsEditBookModalOpen(false)}
+            book={book}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

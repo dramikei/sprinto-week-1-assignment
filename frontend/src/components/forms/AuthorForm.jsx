@@ -9,7 +9,7 @@ import FormTextArea from "./components/FormTextArea";
 import FormLabel from "./components/FormLabel";
 import FormInput from "./components/FormInput";
 
-export default function AuthorForm({ author }) {
+export default function AuthorForm({ author, handleClose }) {
   const router = useRouter();
   const fileInputRef = useRef(null); // Add this ref
 
@@ -171,6 +171,7 @@ export default function AuthorForm({ author }) {
 
     try {
       const author = isEditing ? await updateAuthor() : await createAuthor();
+      handleClose();
       router.push(`/authors/${author.id}`);
     } catch (error) {
       console.error("Error creating author:", error);
@@ -181,7 +182,7 @@ export default function AuthorForm({ author }) {
   };
 
   const handleCancel = () => {
-    router.back();
+    handleClose();
   };
 
   return (

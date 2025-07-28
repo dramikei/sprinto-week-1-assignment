@@ -38,6 +38,12 @@ export const TooltipButton = forwardRef(({
           if (disabled) {
             return;
           }
+
+          if(onClick) {
+            onClick();
+            return;
+          }
+
           router.push(href);
         }}
         {...props}

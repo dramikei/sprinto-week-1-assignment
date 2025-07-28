@@ -4,15 +4,18 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchPresignedURL } from "@/lib/repository";
 import client from "@/lib/apollo";
-import { CREATE_BOOK, UPDATE_BOOK } from "@/lib/queries";
+import { CREATE_BOOK, GET_AUTHOR_NAME_ID, UPDATE_BOOK } from "@/lib/queries";
 import FormTextArea from "./components/FormTextArea";
 import FormLabel from "./components/FormLabel";
 import FormInput from "./components/FormInput";
 import FormSelect from "./components/FormSelect";
 
-export default function BookForm({ book, authors }) {
+export default function BookForm({ book, handleClose }) {
   const router = useRouter();
   const fileInputRef = useRef(null); // Add this ref
+
+  const [authors, setAuthors] = useState([]);
+
   const [bookTitle, setBookTitle] = useState(book?.title || null);
   const [bookDescription, setBookDescription] = useState(book?.description || null);
   const [bookPublishedDate, setBookPublishedDate] = useState(book?.published_date || null);
@@ -27,6 +30,16 @@ export default function BookForm({ book, authors }) {
 
   const isFormValid = bookTitle?.trim()?.length > 0 && bookAuthorId != "" && bookPublishedDate != null;
   const isEditing = book?.id != null;
+
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      const { data: authorsData } = await client.query({
+      query: GET_AUTHOR_NAME_ID,
+    });
+    setAuthors(authorsData.authorNameId);
+  };
+  fetchAuthors();
+}, []);
 
   useEffect(() => {
     setBookTitle(book?.title || null);
@@ -175,6 +188,7 @@ export default function BookForm({ book, authors }) {
     setIsSubmitting(true);
     try {
       const book = isEditing ? await updateBook() : await createBook();
+      handleClose();
       router.push(`/books/${book.id}`);
     } catch (error) {
       console.error("Error creating book:", error);
@@ -185,7 +199,8 @@ export default function BookForm({ book, authors }) {
   };
 
   const handleCancel = () => {
-    router.back();
+    handleClose();
+    // router.back();
   };
 
   return (

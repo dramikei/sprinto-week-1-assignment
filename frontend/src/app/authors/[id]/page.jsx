@@ -7,6 +7,8 @@ import { DELETE_AUTHOR, GET_AUTHOR } from '@/lib/queries';
 import DeleteButton from '@/components/ui/DeleteButton';
 import EditButton from '@/components/ui/EditButton';
 import { useRouter } from 'next/navigation';
+import AuthorForm from '@/components/forms/AuthorForm';
+import Modal from '@/components/modal/Model';
 
 // This would typically come from your database/API
 async function getAuthor(id) {
@@ -46,6 +48,7 @@ export default function AuthorDetailPage({ params }) {
   const router = useRouter();
   const authorId = use(params).id;
   const [author, setAuthor] = useState(null);
+  const [isEditAuthorModalOpen, setIsEditAuthorModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAuthor = async () => { 
@@ -76,7 +79,6 @@ export default function AuthorDetailPage({ params }) {
 
   return (
     <div className="min-h-screen bg-gray-100">
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -107,37 +109,69 @@ export default function AuthorDetailPage({ params }) {
                 <h1 className="text-4xl font-bold text-slate-700 mb-4">
                   {author?.name}
                 </h1>
-                
+
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                     <span className="text-gray-600">
-                      Born: {formatDate(author?.born_date)} (Age {calculateAge(author?.born_date)})
+                      Born: {formatDate(author?.born_date)} (Age{" "}
+                      {calculateAge(author?.born_date)})
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
                     </svg>
                     <span className="text-gray-600">
-                      {author?.totalBooks} {author?.totalBooks === 1 ? 'Book' : 'Books'} Published
+                      {author?.totalBooks}{" "}
+                      {author?.totalBooks === 1 ? "Book" : "Books"} Published
                     </span>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
-                  <EditButton id={author?.id} title="Edit Author" onClick={() => {
-                    router.push(`/authors/${author?.id}/edit`);
-                  }} />
-                  <DeleteButton id={author?.id} title="Delete Author" onClick={() => {
-                    if(confirm("Are you sure you want to delete this author?")) {
-                      deleteAuthor();
-                    }
-                  }} />
+                  <EditButton
+                    id={author?.id}
+                    title="Edit Author"
+                    onClick={() => {
+                      setIsEditAuthorModalOpen(true);
+                    }}
+                  />
+                  <DeleteButton
+                    id={author?.id}
+                    title="Delete Author"
+                    onClick={() => {
+                      if (
+                        confirm("Are you sure you want to delete this author?")
+                      ) {
+                        deleteAuthor();
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -172,12 +206,26 @@ export default function AuthorDetailPage({ params }) {
             {author?.books.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  <svg
+                    className="w-12 h-12 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">No books published yet</h3>
-                <p className="text-gray-500">This author hasn't published any books in our system.</p>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  No books published yet
+                </h3>
+                <p className="text-gray-500">
+                  This author hasn't published any books in our system.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -202,7 +250,7 @@ export default function AuthorDetailPage({ params }) {
                           <span className="text-gray-500">No Cover</span>
                         )}
                       </div>
-                      
+
                       {/* Book Info */}
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg text-slate-700 mb-2 group-hover:text-blue-600 transition-colors">
@@ -225,6 +273,19 @@ export default function AuthorDetailPage({ params }) {
           </div>
         </div>
       </main>
+
+      {isEditAuthorModalOpen && (
+        <Modal
+          isOpen={isEditAuthorModalOpen}
+          handleClose={() => setIsEditAuthorModalOpen(false)}
+        >
+          <AuthorForm
+            author={author}
+            isOpen={isEditAuthorModalOpen}
+            handleClose={() => setIsEditAuthorModalOpen(false)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

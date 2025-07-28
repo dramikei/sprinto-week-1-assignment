@@ -17,7 +17,7 @@ const errorHandlerMiddleware = (e, req, res, next) => {
     } else if (e instanceof Boom) {
       throw e;
     } else {
-      throw new Boom(e);
+      throw e
     }
   } catch (error) {
     let errorDescription;

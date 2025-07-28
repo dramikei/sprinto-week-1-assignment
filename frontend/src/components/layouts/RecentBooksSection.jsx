@@ -2,8 +2,13 @@ import Link from "next/link";
 import EmptyState from "../ui/EmptyState";
 import { TooltipButton } from "../ui/TooltipButton";
 import BookCards from "./components/BookCards";
+import { useState } from "react";
+import Modal from "../modal/Model";
+import BookForm from "../forms/BookForm";
 
 function EmptyBooksState({ authors }) {
+  const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
+
   return (
     <div className="mb-12">
       <h3 className="text-2xl font-bold text-slate-700 mb-6">Recent Books</h3>
@@ -31,11 +36,17 @@ function EmptyBooksState({ authors }) {
           variant="primary" 
           disabled={!authors?.length}
           tooltipText="Add an author first!"
-          href="/books/new"
+          onClick={() => setIsAddBookModalOpen(true)}
         >
           Add Your First Book
         </TooltipButton>
       </EmptyState>
+
+      {isAddBookModalOpen && (
+        <Modal isOpen={isAddBookModalOpen} handleClose={() => setIsAddBookModalOpen(false)}>
+          <BookForm isOpen={isAddBookModalOpen} handleClose={() => setIsAddBookModalOpen(false)} />
+        </Modal>
+      )}
     </div>
   );
 }
