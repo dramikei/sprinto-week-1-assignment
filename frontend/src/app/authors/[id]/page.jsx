@@ -1,26 +1,14 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import { use, useEffect, useState } from 'react';
-import client from '@/lib/apollo';
+import { use, useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
 import { DELETE_AUTHOR, GET_AUTHOR } from '@/lib/queries';
 import DeleteButton from '@/components/ui/DeleteButton';
 import EditButton from '@/components/ui/EditButton';
 import { useRouter } from 'next/navigation';
 import AuthorForm from '@/components/forms/AuthorForm';
 import Modal from '@/components/modal/Model';
-
-// This would typically come from your database/API
-async function getAuthor(id) {
-  // Mock data - replace with actual API call
-  const { data: authorData } = await client.query({
-    query: GET_AUTHOR,
-    variables: {
-      id: id
-    }
-  });
-  return authorData.author;
-}
 
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -47,34 +35,67 @@ function calculateAge(birthDate) {
 export default function AuthorDetailPage({ params }) {
   const router = useRouter();
   const authorId = use(params).id;
-  const [author, setAuthor] = useState(null);
   const [isEditAuthorModalOpen, setIsEditAuthorModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchAuthor = async () => { 
-      try {
-        const author = await getAuthor(authorId);
-        setAuthor(author);
-      } catch (error) {
-        console.error("Error fetching author:", error);
-      }
-    }
-    fetchAuthor();
-  }, [authorId]);
+  // Apollo query to fetch author data
+  const { data, loading, error } = useQuery(GET_AUTHOR, {
+    variables: { id: authorId }
+  });
 
-  const deleteAuthor = async () => {
-    try {
-      await client.mutate({
-        mutation: DELETE_AUTHOR,
-        variables: {
-          id: authorId
-        }
-      });
+  const author = data?.author;
+
+  // Apollo mutation for deleting author
+  const [deleteAuthorMutation, { loading: deleteLoading }] = useMutation(DELETE_AUTHOR, {
+    variables: { id: authorId },
+    onCompleted: () => {
       router.push("/authors");
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error deleting author:", error);
       alert("Failed to delete author. Please try again.");
+    },
+    refetchQueries: ["GetAuthors"] // Refetch authors list after deletion
+  });
+
+  const handleDeleteAuthor = () => {
+    if (confirm("Are you sure you want to delete this author?")) {
+      deleteAuthorMutation();
     }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading author details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading author:</p>
+          <p className="text-sm text-red-500">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found if no author
+  if (!author) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Author not found</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -164,13 +185,8 @@ export default function AuthorDetailPage({ params }) {
                   <DeleteButton
                     id={author?.id}
                     title="Delete Author"
-                    onClick={() => {
-                      if (
-                        confirm("Are you sure you want to delete this author?")
-                      ) {
-                        deleteAuthor();
-                      }
-                    }}
+                    onClick={handleDeleteAuthor}
+                    disabled={deleteLoading}
                   />
                 </div>
               </div>

@@ -3,9 +3,9 @@ import Link from 'next/link';
 import ReviewForm from '@/components/forms/ReviewForm';
 import EditButton from '@/components/ui/EditButton';
 import DeleteButton from '@/components/ui/DeleteButton';
-import client from '@/lib/apollo';
+import { useQuery, useMutation } from '@apollo/client';
 import { GET_BOOK, CREATE_REVIEW, DELETE_BOOK } from '@/lib/queries';
-import { useState, useEffect, use } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import BookForm from '@/components/forms/BookForm';
 import Modal from '@/components/modal/Model';
@@ -13,62 +13,91 @@ import Modal from '@/components/modal/Model';
 export default function BookDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
-  const [book, setBook] = useState({});
-  const [reviews, setReviews] = useState([]);
   const [isEditBookModalOpen, setIsEditBookModalOpen] = useState(false);
 
-  async function getBook(id) {
-    const { data: bookData } = await client.query({
-      query: GET_BOOK,
-      variables: {
-        id: id
-      }
-    });
-    return bookData.book;
-  }
-  
-  async function submitReview({ comment, rating}) {
-    const { data } = await client.mutate({
-      mutation: CREATE_REVIEW,
+  // Apollo query to fetch book data
+  const { data, loading, error, refetch } = useQuery(GET_BOOK, {
+    variables: { id }
+  });
+
+  const book = data?.book;
+  const reviews = book?.reviews || [];
+
+  // Apollo mutation for creating review
+  const [createReviewMutation, { loading: reviewLoading }] = useMutation(CREATE_REVIEW, {
+    onCompleted: () => {
+      // Refetch the book data to get updated reviews
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Error creating review:", error);
+      alert("Failed to create review. Please try again.");
+    }
+  });
+
+  // Apollo mutation for deleting book
+  const [deleteBookMutation, { loading: deleteLoading }] = useMutation(DELETE_BOOK, {
+    variables: { id },
+    onCompleted: () => {
+      router.push("/books");
+    },
+    onError: (error) => {
+      console.error("Error deleting book:", error);
+      alert("Failed to delete book. Please try again.");
+    },
+    refetchQueries: ["GetBooks"] // Refetch books list after deletion
+  });
+
+  const submitReview = async ({ comment, rating }) => {
+    await createReviewMutation({
       variables: {
         book_id: book.id,
         comment: comment ?? "",
-        rating: +rating // TODO: - Do better validation using zod
+        rating: +rating
       }
     });
-    setReviews([...reviews, data.createReview]);
+  };
+
+  const handleDeleteBook = () => {
+    if (confirm("Are you sure you want to delete this book?")) {
+      deleteBookMutation();
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading book details...</p>
+        </div>
+      </div>
+    );
   }
 
-  const deleteBook = async () => {
-    try {
-      await client.mutate({
-        mutation: DELETE_BOOK,
-        variables: {
-          id: id
-        }
-      });
-      router.push("/books");
-    } catch (error) {
-      console.error("Error deleting book:", error);
-      alert("Failed to delete book. Please try again.");
-    }
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading book:</p>
+          <p className="text-sm text-red-500">{error.message}</p>
+        </div>
+      </div>
+    );
   }
 
-  useEffect(() => {
-    const fetchBook = async () => {
-    try {
-      const book = await getBook(id);
-    setBook(book);
-    setReviews(book.reviews ?? []);
-  } catch(error) {
-      console.log(error);
-      alert("Error fetching book");
-      setBook(null);
-      setReviews([]);
-    }
+  // Show not found if no book
+  if (!book) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Book not found</p>
+        </div>
+      </div>
+    );
   }
-  fetchBook();
-  }, []);
 
 
   return (
@@ -129,16 +158,12 @@ export default function BookDetailPage({ params }) {
                   title="Edit Book"
                   onClick={() => {
                     setIsEditBookModalOpen(true);
-                    //router.push(`/books/${id}/edit`);
                   }}
                 />
                 <DeleteButton
                   title="Delete Book"
-                  onClick={() => {
-                    if (confirm("Are you sure you want to delete this book?")) {
-                      deleteBook();
-                    }
-                  }}
+                  onClick={handleDeleteBook}
+                  disabled={deleteLoading}
                 />
               </div>
             </div>
@@ -169,6 +194,7 @@ export default function BookDetailPage({ params }) {
                 bookId={book?.id}
                 onSubmit={submitReview}
                 onComplete={() => {}}
+                disabled={reviewLoading}
               />
             </div>
 

@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@apollo/client";
 import { fetchPresignedURL } from "@/lib/repository";
-import client from "@/lib/apollo";
 import { CREATE_BOOK, GET_AUTHOR_NAME_ID, UPDATE_BOOK } from "@/lib/queries";
 import FormTextArea from "./components/FormTextArea";
 import FormLabel from "./components/FormLabel";
@@ -12,63 +12,61 @@ import FormSelect from "./components/FormSelect";
 
 export default function BookForm({ book, handleClose }) {
   const router = useRouter();
-  const fileInputRef = useRef(null); // Add this ref
+  const fileInputRef = useRef(null);
 
-  const [authors, setAuthors] = useState([]);
-
-  const [bookTitle, setBookTitle] = useState(book?.title || null);
-  const [bookDescription, setBookDescription] = useState(book?.description || null);
-  const [bookPublishedDate, setBookPublishedDate] = useState(book?.published_date || null);
-
+  // Form state - only what's actually needed
+  const [bookTitle, setBookTitle] = useState(book?.title || "");
+  const [bookDescription, setBookDescription] = useState(book?.description || "");
+  const [bookPublishedDate, setBookPublishedDate] = useState(book?.published_date || "");
   const [coverFile, setCoverFile] = useState(null);
-  const [coverUrl, setCoverUrl] = useState(book?.cover_url || null);
+  const [coverUrl, setCoverUrl] = useState(book?.cover_url || "");
   const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isBookChanged, setIsBookChanged] = useState(false);
-  const [canSubmit, setCanSubmit] = useState(false);
   const [bookAuthorId, setBookAuthorId] = useState(book?.author?.id || "");
 
-  const isFormValid = bookTitle?.trim()?.length > 0 && bookAuthorId != "" && bookPublishedDate != null;
   const isEditing = book?.id != null;
+  const isFormValid = bookTitle?.trim()?.length > 0 && bookAuthorId !== "" && bookPublishedDate !== "";
 
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      const { data: authorsData } = await client.query({
-      query: GET_AUTHOR_NAME_ID,
-    });
-    setAuthors(authorsData.authorNameId);
-  };
-  fetchAuthors();
-}, []);
+  // Apollo query to fetch authors
+  const { data: authorsData, loading: authorsLoading } = useQuery(GET_AUTHOR_NAME_ID);
+  const authors = authorsData?.authorNameId || [];
 
+  // Apollo mutations with built-in loading and error handling
+  const [createBook, { loading: createLoading }] = useMutation(CREATE_BOOK, {
+    onCompleted: (data) => {
+      alert("Book created successfully!");
+      handleClose();
+      router.push(`/books/${data.createBook.id}`);
+    },
+    refetchQueries: ["GetBooks"], // Use the GraphQL operation name, not the variable name
+    onError: (error) => {
+      console.error("Error creating book:", error);
+      alert("Failed to create book. Please try again.");
+    },
+  });
+
+  const [updateBook, { loading: updateLoading }] = useMutation(UPDATE_BOOK, {
+    onCompleted: (data) => {
+      alert("Book updated successfully!");
+      handleClose();
+      router.push(`/books/${data.updateBook.id}`);
+    },
+    refetchQueries: ["GetBooks"], // Use the GraphQL operation name, not the variable name
+    onError: (error) => {
+      console.error("Error updating book:", error);
+      alert("Failed to update book. Please try again.");
+    }
+  });
+
+  const isLoading = createLoading || updateLoading;
+
+  // Simple effect to update form when book prop changes
   useEffect(() => {
-    setBookTitle(book?.title || null);
-    setBookDescription(book?.description || null);
-    setBookPublishedDate(book?.published_date || null);
-    setCoverUrl(book?.cover_url || null);
+    setBookTitle(book?.title || "");
+    setBookDescription(book?.description || "");
+    setBookPublishedDate(book?.published_date || "");
+    setCoverUrl(book?.cover_url || "");
     setBookAuthorId(book?.author?.id || "");
   }, [book]);
-
-  useEffect(() => {
-    if (isEditing) {
-      setIsBookChanged(
-        bookTitle !== book?.title ||
-        bookDescription !== book?.description ||
-        bookPublishedDate !== book?.published_date ||
-        coverUrl !== book?.cover_url ||
-        bookAuthorId !== book?.author?.id
-      );
-    }
-  }, [bookTitle, bookDescription, bookPublishedDate, coverUrl, bookAuthorId]);
-
-  useEffect(() => {
-    setCanSubmit(() => {
-      if(isEditing && !isBookChanged) {
-        return false;
-      }
-      return isFormValid && !isUploading && !isSubmitting ;
-    });
-  }, [isBookChanged, isFormValid, isUploading, isSubmitting, bookAuthorId]);
 
   const getPresignedUrl = async (fileName) => {
     if (fileName) {
@@ -142,41 +140,6 @@ export default function BookForm({ book, handleClose }) {
     }
   };
 
-  const createBook = async () => {
-    const { data: bookData } = await client.mutate({
-      mutation: CREATE_BOOK,
-      variables: {
-        input: {
-          title: bookTitle,
-          description: bookDescription,
-          published_date: bookPublishedDate,
-          cover_url: coverUrl,
-          author_id: bookAuthorId,
-        },
-      },
-    });
-    alert("Book created successfully!");
-    return bookData.createBook;
-  }
-
-  const updateBook = async () => {
-    const { data: bookData } = await client.mutate({
-      mutation: UPDATE_BOOK,
-      variables: {
-        id: book.id,
-        input: {
-          title: bookTitle,
-          description: bookDescription,
-          published_date: bookPublishedDate,
-          cover_url: coverUrl,
-          author_id: bookAuthorId,
-        },
-      },
-    });
-    alert("Book updated successfully!");
-    return bookData.updateBook;
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -185,16 +148,40 @@ export default function BookForm({ book, handleClose }) {
       return;
     }
 
-    setIsSubmitting(true);
+    if (!bookAuthorId) {
+      alert("Author is required");
+      return;
+    }
+
+    if (!bookPublishedDate) {
+      alert("Published date is required");
+      return;
+    }
+
+    const variables = {
+      input: {
+        title: bookTitle,
+        description: bookDescription,
+        published_date: bookPublishedDate,
+        cover_url: coverUrl,
+        author_id: bookAuthorId,
+      },
+    };
+
     try {
-      const book = isEditing ? await updateBook() : await createBook();
-      handleClose();
-      router.push(`/books/${book.id}`);
+      if (isEditing) {
+        await updateBook({
+          variables: {
+            id: book.id,
+            ...variables,
+          },
+        });
+      } else {
+        await createBook({ variables });
+      }
     } catch (error) {
-      console.error("Error creating book:", error);
-      alert("Failed to create book. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      // Error handling is done in the mutation's onError callback
+      console.error("Error submitting form:", error);
     }
   };
 
@@ -206,7 +193,7 @@ export default function BookForm({ book, handleClose }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
       <h1 className="text-2xl font-bold text-slate-700 mb-8">
-        Create New Book
+        {isEditing ? "Edit Book" : "Create New Book"}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -234,8 +221,11 @@ export default function BookForm({ book, handleClose }) {
             required={true}
             value={bookAuthorId}
             onChange={(e) => setBookAuthorId(e.target.value)}
+            disabled={authorsLoading}
           >
-            <option value="">Select an author</option>
+            <option value="">
+              {authorsLoading ? "Loading authors..." : "Select an author"}
+            </option>
             {authors.map((author) => (
               <option key={author.id} value={author.id}>
                 {author.name}
@@ -335,24 +325,24 @@ export default function BookForm({ book, handleClose }) {
             type="button"
             onClick={handleCancel}
             className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-medium transition-colors"
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={!isFormValid || isUploading || isLoading || authorsLoading}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              !canSubmit
+              !isFormValid || isUploading || isLoading || authorsLoading
                 ? "bg-blue-300 text-blue-500 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
             }`}
           >
-            {isSubmitting ? (
+            {isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Creating Book...
+                {isEditing ? "Updating Book..." : "Creating Book..."}
               </div>
             ) : (
               isEditing ? "Update Book" : "Create Book"

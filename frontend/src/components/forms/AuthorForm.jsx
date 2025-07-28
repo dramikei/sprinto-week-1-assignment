@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@apollo/client";
 import { fetchPresignedURL } from "@/lib/repository";
-import client from "@/lib/apollo";
 import { CREATE_AUTHOR, UPDATE_AUTHOR } from "@/lib/queries";
 import FormTextArea from "./components/FormTextArea";
 import FormLabel from "./components/FormLabel";
@@ -11,48 +11,52 @@ import FormInput from "./components/FormInput";
 
 export default function AuthorForm({ author, handleClose }) {
   const router = useRouter();
-  const fileInputRef = useRef(null); // Add this ref
+  const fileInputRef = useRef(null);
 
-  const [authorName, setAuthorName] = useState(author?.name || null);
-  const [authorBiography, setAuthorBiography] = useState(author?.biography || null);
-  const [authorBirthDate, setAuthorBirthDate] = useState(author?.born_date || null);
-
+  const [authorName, setAuthorName] = useState(author?.name || "");
+  const [authorBiography, setAuthorBiography] = useState(author?.biography || "");
+  const [authorBirthDate, setAuthorBirthDate] = useState(author?.born_date || "");
   const [photoFile, setPhotoFile] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState(author?.photo_url || null);
+  const [photoUrl, setPhotoUrl] = useState(author?.photo_url || "");
   const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAuthorChanged, setIsAuthorChanged] = useState(false);
-  const [canSubmit, setCanSubmit] = useState(false);
 
-  const isFormValid = authorName?.trim()?.length > 0;
   const isEditing = author?.id != null;
+  const isFormValid = authorName?.trim()?.length > 0;
 
-  useEffect(() => {
-    setAuthorName(author?.name || null);
-    setAuthorBiography(author?.biography || null);
-    setAuthorBirthDate(author?.born_date || null);
-    setPhotoUrl(author?.photo_url || null);
-  }, [author]);
+  const [createAuthor, { loading: createLoading }] = useMutation(CREATE_AUTHOR, {
+    onCompleted: (data) => {
+      alert("Author created successfully!");
+      handleClose();
+      router.push(`/authors/${data.createAuthor.id}`);
+    },
+    refetchQueries: ["GetAuthors"], // Use the GraphQL operation name, not the variable name
+    onError: (error) => {
+      console.error("Error creating author:", error);
+      alert("Failed to create author. Please try again.");
+    },
+  });
 
-  useEffect(() => {
-    if (isEditing) {
-      setIsAuthorChanged(
-        authorName !== author?.name ||
-        authorBiography !== author?.biography ||
-        authorBirthDate !== author?.born_date ||
-        photoUrl !== author?.photo_url
-      );
+  const [updateAuthor, { loading: updateLoading }] = useMutation(UPDATE_AUTHOR, {
+    onCompleted: (data) => {
+      alert("Author updated successfully!");
+      handleClose();
+      router.push(`/authors/${data.updateAuthor.id}`);
+    },
+    refetchQueries: ["GetAuthors"],
+    onError: (error) => {
+      console.error("Error updating author:", error);
+      alert("Failed to update author. Please try again.");
     }
-  }, [authorName, authorBiography, authorBirthDate, photoUrl]);
+  });
+
+  const isLoading = createLoading || updateLoading;
 
   useEffect(() => {
-    setCanSubmit(() => {
-      if(isEditing && !isAuthorChanged) {
-        return false;
-      }
-      return isFormValid && !isUploading && !isSubmitting ;
-    });
-  }, [isAuthorChanged, isFormValid, isUploading, isSubmitting]);
+    setAuthorName(author?.name || "");
+    setAuthorBiography(author?.biography || "");
+    setAuthorBirthDate(author?.born_date || "");
+    setPhotoUrl(author?.photo_url || "");
+  }, [author]);
 
   const getPresignedUrl = async (fileName) => {
     if (fileName) {
@@ -126,39 +130,6 @@ export default function AuthorForm({ author, handleClose }) {
     }
   };
 
-  const createAuthor = async () => {
-    const { data: authorData } = await client.mutate({
-      mutation: CREATE_AUTHOR,
-      variables: {
-        input: {
-          name: authorName,
-          biography: authorBiography,
-          born_date: authorBirthDate,
-          photo_url: photoUrl,
-        },
-      },
-    });
-    alert("Author created successfully!");
-    return authorData.createAuthor;
-  }
-
-  const updateAuthor = async () => {
-    const { data: authorData } = await client.mutate({
-      mutation: UPDATE_AUTHOR,
-      variables: {
-        id: author.id,
-        input: {
-          name: authorName,
-          biography: authorBiography,
-          born_date: authorBirthDate,
-          photo_url: photoUrl,
-        },
-      },
-    });
-    alert("Author updated successfully!");
-    return authorData.updateAuthor;
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -167,17 +138,29 @@ export default function AuthorForm({ author, handleClose }) {
       return;
     }
 
-    setIsSubmitting(true);
+    const variables = {
+      input: {
+        name: authorName,
+        biography: authorBiography,
+        born_date: authorBirthDate,
+        photo_url: photoUrl,
+      },
+    };
 
     try {
-      const author = isEditing ? await updateAuthor() : await createAuthor();
-      handleClose();
-      router.push(`/authors/${author.id}`);
+      if (isEditing) {
+        await updateAuthor({
+          variables: {
+            id: author.id,
+            ...variables,
+          },
+        });
+      } else {
+        await createAuthor({ variables });
+      }
     } catch (error) {
-      console.error("Error creating author:", error);
-      alert("Failed to create author. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      // Error handling is done in the mutation's onError callback
+      console.error("Error submitting form:", error);
     }
   };
 
@@ -188,7 +171,7 @@ export default function AuthorForm({ author, handleClose }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
       <h1 className="text-2xl font-bold text-slate-700 mb-8">
-        Create New Author
+        {isEditing ? "Edit Author" : "Create New Author"}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -297,24 +280,24 @@ export default function AuthorForm({ author, handleClose }) {
             type="button"
             onClick={handleCancel}
             className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-medium transition-colors"
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={!isFormValid || isUploading || isLoading}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              !canSubmit
+              !isFormValid || isUploading || isLoading
                 ? "bg-blue-300 text-blue-500 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
             }`}
           >
-            {isSubmitting ? (
+            {isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Creating Author...
+                {isEditing ? "Updating Author..." : "Creating Author..."}
               </div>
             ) : (
               isEditing ? "Update Author" : "Create Author"
