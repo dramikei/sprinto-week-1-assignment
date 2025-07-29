@@ -13,15 +13,19 @@ export default function AuthorForm({ author, handleClose }) {
   const router = useRouter();
   const fileInputRef = useRef(null);
 
-  const [authorName, setAuthorName] = useState(author?.name || "");
-  const [authorBiography, setAuthorBiography] = useState(author?.biography || "");
-  const [authorBirthDate, setAuthorBirthDate] = useState(author?.born_date || "");
+  const [authorData, setAuthorData] = useState({
+    name: author?.name || "",
+    biography: author?.biography || "",
+    born_date: author?.born_date || "",
+    photo_url: author?.photo_url || ""
+  });
   const [photoFile, setPhotoFile] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState(author?.photo_url || "");
   const [isUploading, setIsUploading] = useState(false);
 
   const isEditing = author?.id != null;
-  const isFormValid = authorName?.trim()?.length > 0;
+  const isFormValid = authorData.name?.trim()?.length > 0;
+  
+  const hasAuthorImageChanged = authorData.photo_url !== author?.photo_url && authorData.photo_url !== "";
 
   const [createAuthor, { loading: createLoading }] = useMutation(CREATE_AUTHOR, {
     onCompleted: (data) => {
@@ -52,10 +56,12 @@ export default function AuthorForm({ author, handleClose }) {
   const isLoading = createLoading || updateLoading;
 
   useEffect(() => {
-    setAuthorName(author?.name || "");
-    setAuthorBiography(author?.biography || "");
-    setAuthorBirthDate(author?.born_date || "");
-    setPhotoUrl(author?.photo_url || "");
+    setAuthorData({
+      name: author?.name || "",
+      biography: author?.biography || "",
+      born_date: author?.born_date || "",
+      photo_url: author?.photo_url || ""
+    });
   }, [author]);
 
   const getPresignedUrl = async (fileName) => {
@@ -100,7 +106,7 @@ export default function AuthorForm({ author, handleClose }) {
     }
     // Reset the state
     setPhotoFile(null);
-    setPhotoUrl(null);
+    setAuthorData(prev => ({ ...prev, photo_url: "" }));
   };
 
   const handleFileChange = async (e) => {
@@ -118,7 +124,7 @@ export default function AuthorForm({ author, handleClose }) {
       await uploadToS3(uploadUrl, file);
 
       // Step 3: Save the file URL
-      setPhotoUrl(fileUrl);
+      setAuthorData(prev => ({ ...prev, photo_url: fileUrl }));
 
       console.log("Upload successful!", fileUrl);
     } catch (error) {
@@ -133,17 +139,17 @@ export default function AuthorForm({ author, handleClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!authorName.trim()) {
+    if (!authorData.name.trim()) {
       alert("Name is required");
       return;
     }
 
     const variables = {
       input: {
-        name: authorName,
-        biography: authorBiography,
-        born_date: authorBirthDate,
-        photo_url: photoUrl,
+        name: authorData.name,
+        biography: authorData.biography,
+        born_date: authorData.born_date,
+        photo_url: authorData.photo_url,
       },
     };
 
@@ -182,8 +188,8 @@ export default function AuthorForm({ author, handleClose }) {
             type="text"
             id="name"
             name="name"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
+            value={authorData.name}
+            onChange={(e) => setAuthorData(prev => ({ ...prev, name: e.target.value }))}
             placeholder="Enter author's full name"
             required={true}
           />
@@ -195,8 +201,8 @@ export default function AuthorForm({ author, handleClose }) {
           <FormTextArea
             id="biography"
             name="biography"
-            value={authorBiography}
-            onChange={(e) => setAuthorBiography(e.target.value)}
+            value={authorData.biography}
+            onChange={(e) => setAuthorData(prev => ({ ...prev, biography: e.target.value }))}
             rows={6}
             placeholder="Enter author's biography..."
           />
@@ -209,8 +215,8 @@ export default function AuthorForm({ author, handleClose }) {
             type="date"
             id="birthDate"
             name="birthDate"
-            value={authorBirthDate}
-            onChange={(e) => setAuthorBirthDate(e.target.value)}
+            value={authorData.born_date}
+            onChange={(e) => setAuthorData(prev => ({ ...prev, born_date: e.target.value }))}
             placeholder="dd/mm/yyyy"
           />
         </div>
@@ -237,7 +243,7 @@ export default function AuthorForm({ author, handleClose }) {
               </div>
             )}
 
-            {photoUrl && !isUploading && (
+            {hasAuthorImageChanged && authorData.photo_url && !isUploading && (
               <div className="flex items-center gap-2 text-green-600">
                 <svg
                   className="w-4 h-4"
