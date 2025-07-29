@@ -1,22 +1,26 @@
 "use client";
 import AuthorsSearchAndList from '@/components/layouts/AuthorsSearchAndListSection';
-import client from '@/lib/apollo';
+import { useQuery } from '@apollo/client';
 import { GET_AUTHORS } from '@/lib/queries';
-import { useEffect, useState } from 'react';
 
 
 export default function AuthorsPage() {
-  const [authors, setAuthors] = useState([]);
-  
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      const { data: authorsData } = await client.query({
-        query: GET_AUTHORS
-      });
-      setAuthors(authorsData?.authors?.edges ?? []);
-    };
-    fetchAuthors();
-  }, []);
+  const { data, loading, error } = useQuery(GET_AUTHORS, {
+    variables: {
+      first: 10
+    }
+  });
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Error loading authors</h2>
+          <p className="text-gray-600">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -26,7 +30,8 @@ export default function AuthorsPage() {
 
         {/* Authors Search and List Component */}
         <AuthorsSearchAndList 
-          initialAuthors={authors}
+          initialAuthors={data?.authors?.edges ?? []}
+          initialLoading={loading}
         />
       </main>
     </div>

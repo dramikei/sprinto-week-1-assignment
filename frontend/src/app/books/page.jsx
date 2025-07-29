@@ -1,22 +1,26 @@
 "use client";
 import BooksSearchAndList from '@/components/layouts/BooksSearchAndListSection';
-import client from '@/lib/apollo';
+import { useQuery } from '@apollo/client';
 import { GET_BOOKS } from '@/lib/queries';
-import { useEffect, useState } from 'react';
 
 
 export default function BooksPage() {
-  const [books, setBooks] = useState([]);
+  const { data, loading, error } = useQuery(GET_BOOKS, {
+    variables: {
+      first: 10
+    }
+  });
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      const { data: booksData } = await client.query({
-        query: GET_BOOKS
-      });
-      setBooks(booksData?.books?.edges || []);
-    };
-    fetchBooks();
-  }, []);
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Error loading books</h2>
+          <p className="text-gray-600">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -26,7 +30,8 @@ export default function BooksPage() {
 
         {/* Books Search and List Component */}
         <BooksSearchAndList 
-          initialBooks={books}
+          initialBooks={data?.books?.edges || []}
+          initialLoading={loading}
         />
       </main>
     </div>
