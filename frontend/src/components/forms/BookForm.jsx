@@ -30,9 +30,6 @@ export default function BookForm({ book, handleClose }) {
 
   const isEditing = book?.id != null;
   const isFormValid = bookData.title?.trim()?.length > 0 && bookData.author_id !== "" && bookData.published_date !== "";
-  
-  // Check if cover URL has changed from original
-  const hasCoverChanged = bookData.cover_url !== originalCoverUrl && bookData.cover_url !== "";
 
   // Apollo query to fetch authors
   const { data: authorsData, loading: authorsLoading } = useQuery(GET_AUTHOR_NAME_ID);
@@ -65,8 +62,6 @@ export default function BookForm({ book, handleClose }) {
     }
   });
 
-  const isLoading = createLoading || updateLoading;
-
   // Simple effect to update form when book prop changes
   useEffect(() => {
     setBookData({
@@ -77,6 +72,12 @@ export default function BookForm({ book, handleClose }) {
       author_id: book?.author?.id || "",
     });
   }, [book]);
+
+  // Check if cover URL has changed from original
+  const hasCoverChanged = bookData.cover_url !== originalCoverUrl && bookData.cover_url !== "";
+
+  const isLoading = createLoading || updateLoading;
+  const isSubmitDisabled = !isFormValid || isUploading || isLoading || authorsLoading;
 
   const getPresignedUrl = async (fileName) => {
     if (fileName) {
@@ -342,9 +343,9 @@ export default function BookForm({ book, handleClose }) {
 
           <button
             type="submit"
-            disabled={!isFormValid || isUploading || isLoading || authorsLoading}
+            disabled={isSubmitDisabled}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              !isFormValid || isUploading || isLoading || authorsLoading
+              isSubmitDisabled
                 ? "bg-blue-300 text-blue-500 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
             }`}
