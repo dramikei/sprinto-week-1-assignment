@@ -14,17 +14,25 @@ export default function BookForm({ book, handleClose }) {
   const router = useRouter();
   const fileInputRef = useRef(null);
 
-  // Form state - only what's actually needed
-  const [bookTitle, setBookTitle] = useState(book?.title || "");
-  const [bookDescription, setBookDescription] = useState(book?.description || "");
-  const [bookPublishedDate, setBookPublishedDate] = useState(book?.published_date || "");
+  // Single book state object instead of multiple states
+  const [bookData, setBookData] = useState({
+    title: book?.title || "",
+    description: book?.description || "",
+    published_date: book?.published_date || "",
+    cover_url: book?.cover_url || "",
+    author_id: book?.author?.id || "",
+  });
+  
+  // Keep track of original cover URL to detect changes
+  const [originalCoverUrl] = useState(book?.cover_url || "");
   const [coverFile, setCoverFile] = useState(null);
-  const [coverUrl, setCoverUrl] = useState(book?.cover_url || "");
   const [isUploading, setIsUploading] = useState(false);
-  const [bookAuthorId, setBookAuthorId] = useState(book?.author?.id || "");
 
   const isEditing = book?.id != null;
-  const isFormValid = bookTitle?.trim()?.length > 0 && bookAuthorId !== "" && bookPublishedDate !== "";
+  const isFormValid = bookData.title?.trim()?.length > 0 && bookData.author_id !== "" && bookData.published_date !== "";
+  
+  // Check if cover URL has changed from original
+  const hasCoverChanged = bookData.cover_url !== originalCoverUrl && bookData.cover_url !== "";
 
   // Apollo query to fetch authors
   const { data: authorsData, loading: authorsLoading } = useQuery(GET_AUTHOR_NAME_ID);
@@ -61,11 +69,13 @@ export default function BookForm({ book, handleClose }) {
 
   // Simple effect to update form when book prop changes
   useEffect(() => {
-    setBookTitle(book?.title || "");
-    setBookDescription(book?.description || "");
-    setBookPublishedDate(book?.published_date || "");
-    setCoverUrl(book?.cover_url || "");
-    setBookAuthorId(book?.author?.id || "");
+    setBookData({
+      title: book?.title || "",
+      description: book?.description || "",
+      published_date: book?.published_date || "",
+      cover_url: book?.cover_url || "",
+      author_id: book?.author?.id || "",
+    });
   }, [book]);
 
   const getPresignedUrl = async (fileName) => {
@@ -110,7 +120,7 @@ export default function BookForm({ book, handleClose }) {
     }
     // Reset the state
     setCoverFile(null);
-    setCoverUrl(null);
+    setBookData(prev => ({ ...prev, cover_url: originalCoverUrl }));
   };
 
   const handleFileChange = async (e) => {
@@ -128,7 +138,7 @@ export default function BookForm({ book, handleClose }) {
       await uploadToS3(uploadUrl, file);
 
       // Step 3: Save the file URL
-      setCoverUrl(fileUrl);
+      setBookData(prev => ({ ...prev, cover_url: fileUrl }));
 
       console.log("Upload successful!", fileUrl);
     } catch (error) {
@@ -143,28 +153,28 @@ export default function BookForm({ book, handleClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!bookTitle.trim()) {
+    if (!bookData.title.trim()) {
       alert("Title is required");
       return;
     }
 
-    if (!bookAuthorId) {
+    if (!bookData.author_id) {
       alert("Author is required");
       return;
     }
 
-    if (!bookPublishedDate) {
+    if (!bookData.published_date) {
       alert("Published date is required");
       return;
     }
 
     const variables = {
       input: {
-        title: bookTitle,
-        description: bookDescription,
-        published_date: bookPublishedDate,
-        cover_url: coverUrl,
-        author_id: bookAuthorId,
+        title: bookData.title,
+        description: bookData.description,
+        published_date: bookData.published_date,
+        cover_url: bookData.cover_url,
+        author_id: bookData.author_id,
       },
     };
 
@@ -204,8 +214,8 @@ export default function BookForm({ book, handleClose }) {
             type="text"
             id="title"
             name="title"
-            value={bookTitle}
-            onChange={(e) => setBookTitle(e.target.value)}
+            value={bookData.title}
+            onChange={(e) => setBookData(prev => ({ ...prev, title: e.target.value }))}
             placeholder="Enter book's title"
             required={true}
           />
@@ -219,8 +229,8 @@ export default function BookForm({ book, handleClose }) {
             id="author"
             name="author"
             required={true}
-            value={bookAuthorId}
-            onChange={(e) => setBookAuthorId(e.target.value)}
+            value={bookData.author_id}
+            onChange={(e) => setBookData(prev => ({ ...prev, author_id: e.target.value }))}
             disabled={authorsLoading}
           >
             <option value="">
@@ -240,8 +250,8 @@ export default function BookForm({ book, handleClose }) {
           <FormTextArea
             id="description"
             name="description"
-            value={bookDescription}
-            onChange={(e) => setBookDescription(e.target.value)}
+            value={bookData.description}
+            onChange={(e) => setBookData(prev => ({ ...prev, description: e.target.value }))}
             rows={6}
             placeholder="Enter book's description..."
           />
@@ -254,8 +264,8 @@ export default function BookForm({ book, handleClose }) {
             type="date"
             id="publishedDate"
             name="publishedDate"
-            value={bookPublishedDate}
-            onChange={(e) => setBookPublishedDate(e.target.value)}
+            value={bookData.published_date}
+            onChange={(e) => setBookData(prev => ({ ...prev, published_date: e.target.value }))}
             placeholder="dd/mm/yyyy"
           />
         </div>
@@ -282,7 +292,7 @@ export default function BookForm({ book, handleClose }) {
               </div>
             )}
 
-            {coverUrl && !isUploading && (
+            {hasCoverChanged && !isUploading && (
               <div className="flex items-center gap-2 text-green-600">
                 <svg
                   className="w-4 h-4"
