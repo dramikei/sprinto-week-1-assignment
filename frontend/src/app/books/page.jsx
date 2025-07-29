@@ -11,8 +11,7 @@ export default function BooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       const { data: booksData } = await client.query({
-        query: GET_BOOKS,
-        variables: { first: 6 },
+        query: GET_BOOKS
       });
       setBooks(booksData?.books?.edges || []);
     };

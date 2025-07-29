@@ -17,10 +17,12 @@ export default function AuthorsSearchAndList({
 
   const [isLoading, setIsLoading] = useState(false);
   
-  const [nextCursor, setNextCursor] = useState(null);
-  const [previousCursor, setPreviousCursor] = useState(null);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [pageInfo, setPageInfo] = useState({
+    nextCursor: null,
+    previousCursor: null,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
 
   // Debounce search values
   const debouncedSearchTerm = useDebounce(searchTerm, 350);
@@ -48,10 +50,12 @@ export default function AuthorsSearchAndList({
       });
 
       console.log(JSON.stringify(authorsData?.authors?.pageInfo, null, 2));
-      setNextCursor(authorsData?.authors?.pageInfo?.nextCursor);
-      setPreviousCursor(authorsData?.authors?.pageInfo?.previousCursor);
-      setHasNextPage(authorsData?.authors?.pageInfo?.hasNextPage);
-      setHasPreviousPage(authorsData?.authors?.pageInfo?.hasPreviousPage);
+      setPageInfo({
+        nextCursor: authorsData?.authors?.pageInfo?.nextCursor,
+        previousCursor: authorsData?.authors?.pageInfo?.previousCursor,
+        hasNextPage: authorsData?.authors?.pageInfo?.hasNextPage,
+        hasPreviousPage: authorsData?.authors?.pageInfo?.hasPreviousPage
+      });
       setAuthors(authorsData?.authors?.edges ?? []);
       setTotalCount(authorsData?.authors?.totalCount ?? 0);
     } catch (error) {
@@ -62,11 +66,11 @@ export default function AuthorsSearchAndList({
   };
 
   const handleNextPage = async () => {
-    updateSearch(nextCursor, null);
+    updateSearch(pageInfo.nextCursor, null);
   }
 
   const handlePreviousPage = async () => {
-    updateSearch(null, previousCursor);
+    updateSearch(null, pageInfo.previousCursor);
   }
 
   useEffect(() => {
@@ -151,12 +155,12 @@ export default function AuthorsSearchAndList({
           <div className="flex justify-center gap-2">
             <PaginationButton onClick={() => {
               handlePreviousPage();
-            }} disabled={!hasPreviousPage}>
+            }} disabled={!pageInfo.hasPreviousPage}>
               Previous
             </PaginationButton>
             <PaginationButton onClick={() => {
               handleNextPage();
-            }} disabled={!hasNextPage}>
+            }} disabled={!pageInfo.hasNextPage}>
               Next
             </PaginationButton>
           </div>

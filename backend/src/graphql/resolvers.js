@@ -149,7 +149,7 @@ const resolvers = {
     },
     
     createAuthor: async (_, { input }) => {
-      return await Author.create(input);
+      return await Author.create({ ...input, born_date: input.born_date ? new Date(input.born_date) : null });
     },
     
     updateAuthor: async (_, { id, input }) => {

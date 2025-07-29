@@ -17,10 +17,12 @@ export default function BooksSearchAndList({
 
   const [isLoading, setIsLoading] = useState(false);
   
-  const [nextCursor, setNextCursor] = useState(null);
-  const [previousCursor, setPreviousCursor] = useState(null);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [pageInfo, setPageInfo] = useState({
+    nextCursor: null,
+    previousCursor: null,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
 
   // Debounce search values
   const debouncedSearchTerm = useDebounce(searchTerm, 350);
@@ -48,10 +50,12 @@ export default function BooksSearchAndList({
       });
 
       console.log(JSON.stringify(booksData?.books?.pageInfo, null, 2));
-      setNextCursor(booksData?.books?.pageInfo?.nextCursor);
-      setPreviousCursor(booksData?.books?.pageInfo?.previousCursor);
-      setHasNextPage(booksData?.books?.pageInfo?.hasNextPage);
-      setHasPreviousPage(booksData?.books?.pageInfo?.hasPreviousPage);
+      setPageInfo({
+        nextCursor: booksData?.books?.pageInfo?.nextCursor,
+        previousCursor: booksData?.books?.pageInfo?.previousCursor,
+        hasNextPage: booksData?.books?.pageInfo?.hasNextPage,
+        hasPreviousPage: booksData?.books?.pageInfo?.hasPreviousPage
+      });
       setBooks(booksData?.books?.edges ?? []);
       setTotalCount(booksData?.books?.totalCount ?? 0);
     } catch (error) {
@@ -62,11 +66,11 @@ export default function BooksSearchAndList({
   };
 
   const handleNextPage = async () => {
-    updateSearch(nextCursor, null);
+    updateSearch(pageInfo.nextCursor, null);
   }
 
   const handlePreviousPage = async () => {
-    updateSearch(null, previousCursor);
+    updateSearch(null, pageInfo.previousCursor);
   }
 
   useEffect(() => {
@@ -151,12 +155,12 @@ export default function BooksSearchAndList({
           <div className="flex justify-center gap-2">
             <PaginationButton onClick={() => {
               handlePreviousPage();
-            }} disabled={!hasPreviousPage}>
+            }} disabled={!pageInfo.hasPreviousPage}>
               Previous
             </PaginationButton>
             <PaginationButton onClick={() => {
               handleNextPage();
-            }} disabled={!hasNextPage}>
+            }} disabled={!pageInfo.hasNextPage}>
               Next
             </PaginationButton>
           </div>

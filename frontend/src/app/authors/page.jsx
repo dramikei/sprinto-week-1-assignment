@@ -11,8 +11,7 @@ export default function AuthorsPage() {
   useEffect(() => {
     const fetchAuthors = async () => {
       const { data: authorsData } = await client.query({
-        query: GET_AUTHORS,
-        variables: { first: 6 },
+        query: GET_AUTHORS
       });
       setAuthors(authorsData?.authors?.edges ?? []);
     };
