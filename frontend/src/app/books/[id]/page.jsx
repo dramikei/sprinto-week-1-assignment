@@ -9,6 +9,7 @@ import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import BookForm from '@/components/forms/BookForm';
 import Modal from '@/components/modal/Model';
+import Image from 'next/image';
 
 export default function BookDetailPage({ params }) {
   const { id } = use(params);
@@ -44,6 +45,11 @@ export default function BookDetailPage({ params }) {
     onError: (error) => {
       console.error("Error deleting book:", error);
       alert("Failed to delete book. Please try again.");
+    },
+    update: (cache) => {
+      // Remove the author from all cached GET_AUTHORS queries
+      cache.evict({ id: `Book:${id}` });
+      cache.gc();
     },
     refetchQueries: ["GetBooks"] // Refetch books list after deletion
   });
@@ -109,9 +115,15 @@ export default function BookDetailPage({ params }) {
           <div className="flex flex-col md:flex-row gap-8 mb-8 items-center">
             {/* Book Cover */}
             <div className="flex-shrink-0">
-              <div className="w-64 h-80 bg-gray-200 rounded-lg flex items-center justify-center">
+              <div className="w-48 h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 {book?.cover_url ? (
-                  <img src={book?.cover_url} alt={book.title} />
+                  <Image
+                    src={book?.cover_url}
+                    alt={book.title}
+                    width={192}
+                    height={256}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <span className="text-gray-500 text-lg">No Cover</span>
                 )}

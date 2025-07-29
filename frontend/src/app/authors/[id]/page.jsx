@@ -54,6 +54,11 @@ export default function AuthorDetailPage({ params }) {
       console.error("Error deleting author:", error);
       alert("Failed to delete author. Please try again.");
     },
+    update: (cache) => {
+      // Remove the author from all cached GET_AUTHORS queries
+      cache.evict({ id: `Author:${authorId}` });
+      cache.gc();
+    },
     refetchQueries: ["GetAuthors"] // Refetch authors list after deletion
   });
 
