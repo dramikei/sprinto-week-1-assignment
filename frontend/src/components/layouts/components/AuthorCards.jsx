@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function AuthorCards({ authors, showBirthDate = false }) {
@@ -8,7 +9,7 @@ export default function AuthorCards({ authors, showBirthDate = false }) {
             <div className="bg-white rounded-lg shadow-md p-4">
               <div className="bg-gray-200 rounded-lg h-48 flex items-center justify-center mb-4 overflow-clip">
                 {author.photo_url ? (
-                  <img src={author.photo_url} alt={author.name} />
+                  <Image width={196} height={196} src={author.photo_url} alt={author.name} />
                 ) : (
                   <div className="text-4xl">👤</div>
                 )}

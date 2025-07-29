@@ -23,8 +23,6 @@ export default function BookForm({ book, handleClose }) {
     author_id: book?.author?.id || "",
   });
   
-  // Keep track of original cover URL to detect changes
-  const [originalCoverUrl] = useState(book?.cover_url || "");
   const [coverFile, setCoverFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -74,7 +72,7 @@ export default function BookForm({ book, handleClose }) {
   }, [book]);
 
   // Check if cover URL has changed from original
-  const hasCoverChanged = bookData.cover_url !== originalCoverUrl && bookData.cover_url !== "";
+  const hasCoverChanged = bookData.cover_url !== book?.cover_url && bookData.cover_url !== "";
 
   const isLoading = createLoading || updateLoading;
   const isSubmitDisabled = !isFormValid || isUploading || isLoading || authorsLoading;
@@ -121,7 +119,7 @@ export default function BookForm({ book, handleClose }) {
     }
     // Reset the state
     setCoverFile(null);
-    setBookData(prev => ({ ...prev, cover_url: originalCoverUrl }));
+    setBookData(prev => ({ ...prev, cover_url: book?.cover_url || "" }));
   };
 
   const handleFileChange = async (e) => {

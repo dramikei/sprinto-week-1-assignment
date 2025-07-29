@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function BookCards({ books, showPublishedDate = false }) {
@@ -8,7 +9,7 @@ export default function BookCards({ books, showPublishedDate = false }) {
             <div key={book.id} className="bg-white rounded-lg shadow-md p-4">
               <div className="bg-gray-200 rounded-lg h-60 w-full flex items-center justify-center mb-4 overflow-clip">
                 {book.cover_url ? (
-                  <img src={book.cover_url} alt={book.title} />
+                  <Image width={196} height={256} src={book.cover_url} alt={book.title} />
                 ) : (
                   <span className="text-gray-500">No Cover</span>
                 )}
