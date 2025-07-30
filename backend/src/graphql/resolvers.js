@@ -186,30 +186,24 @@ const resolvers = {
     },
   },
   Author: {
-    books: async (author) => {
-      // TODO: add pagination
-      return await Book.findAll({ where: { author_id: author.id } });
+    books: async (author, _, { dataloaders }) => {
+      return await dataloaders.booksByAuthorLoader.load(author.id);
     },
-    totalBooks: async (author) => {
-      return await Book.count({ where: { author_id: author.id } });
+    totalBooks: async (author, _, { dataloaders }) => {
+      return await dataloaders.bookCountByAuthorLoader.load(author.id);
     }
   },
   Book: {
-    author: async (book) => {
-      return await Author.findByPk(book.author_id);
+    author: async (book, _, { dataloaders }) => {
+      return await dataloaders.authorLoader.load(book.author_id);
     },
     
-    reviews: async (book) => {
-      // TODO: add pagination
-      return await Review.find({ book_id: book.id });
+    reviews: async (book, _, { dataloaders }) => {
+      return await dataloaders.reviewsByBookLoader.load(book.id);
     },
     
-    average_rating: async (book) => {
-      const reviews = await Review.find({ book_id: book.id });
-      if (reviews.length === 0) return null;
-      
-      const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-      return sum / reviews.length;
+    average_rating: async (book, _, { dataloaders }) => {
+      return await dataloaders.averageRatingByBookLoader.load(book.id);
     },
   },
 };

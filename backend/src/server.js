@@ -19,6 +19,7 @@ const { Boom } = require('@hapi/boom');
 // GraphQL
 const typeDefs = require('./graphql/typeDefs');
 const resolvers = require('./graphql/resolvers');
+const { createDataLoaders } = require('./graphql/dataloaders');
 
 // S3-compatible client
 const { MinioClient } = require('./utils/minio');
@@ -49,15 +50,17 @@ async function startServer() {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req }) => ({
-      // TODO: - Add authentication context here
-      user: req.user,
-    }),
     formatError: apolloErrorHandlerMiddleware,
   });
   
   await server.start();
-  app.use('/graphql', expressMiddleware(server));
+  app.use('/graphql', expressMiddleware(server, {
+    context: async ({ req }) => ({
+      // TODO: - Add authentication context here
+      user: req.user,
+      dataloaders: createDataLoaders(),
+    }),
+  }));
 
   app.get('/presignedUrl', async (req, res) => {
     const { name, uploadType } = req.query;
